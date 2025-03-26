@@ -1,0 +1,1 @@
+{"root":["./src/app.ts","./src/server.ts","./src/controllers/comments_controller.ts","./src/controllers/post_controller.ts","./src/models/comments_model.ts","./src/models/posts_model.ts","./src/routes/comments_routes.ts","./src/routes/posts_routes.ts"],"version":"5.7.2"}

@@ -1,0 +1,6 @@
+node_modules
+.env
+.env_dev
+.env_prod
+client-cert.pem
+client-key.pem

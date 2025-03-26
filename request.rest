@@ -1,0 +1,83 @@
+###
+
+# GET http://localhost:3000
+
+###
+//Get all posts
+GET http://localhost:3000/posts 
+###
+//Get post by id
+GET http://localhost:3000/posts/675ec4c7c50e86442f7f8432
+
+
+###
+//Get post by sender
+GET http://localhost:3000/posts?sender=Eliav
+###
+
+# POST http://localhost:3000/posts
+
+
+###
+//Add a new post
+POST http://localhost:3000/posts
+Content-Type: application/json
+
+{
+    "sender":"Eliav",
+    "title":"my first%%%%%%%%%%%% post@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+    "content":"This is my first post"
+}
+
+###
+//Update post by id
+PUT http://localhost:3000/posts/675ec4c7c50e86442f7f8432
+Content-Type: application/json
+
+{
+    "title": "Updated Twefeesitle",
+    "content": "Updated content of the post*****************************88."
+}
+###
+
+GET http://localhost:3000/about
+
+###
+DELETE http://localhost:3000/posts/675ec4c7c50e86442f7f8432
+
+//Comments API
+###
+
+# Create a new comment
+POST http://localhost:3000/comments
+Content-Type: application/json
+
+{
+  "postId": "675eb94cbddf48d516129931",
+  "sender": "User1",
+  "content": "This is a new comment on the post@@@@@@*******************."
+}
+
+# Get all comments for a specific post
+###
+GET http://localhost:3000/comments/posts/675eb94cbddf48d516129931
+
+###
+
+# Update a comment
+PUT http://localhost:3000/comments/675ebb658b4e9b57f7c24f3b
+Content-Type: application/json
+
+{
+  "sender": "User1",
+  "content": "This is an updated comment!!!!!!!!!!#########################################."
+}
+###
+
+# Delete a comment
+DELETE http://localhost:3000/comments/675ebb658b4e9b57f7c24f3b
+###
+
+# Get a single comment
+GET http://localhost:3000/comments/675ebb658b4e9b57f7c24f3b
+###

@@ -1,0 +1,62 @@
+{
+  "name": "assignment-1-advanced-topics-in-web-applications",
+  "version": "1.0.0",
+  "description": "In this assignment we will develop a full-stack project",
+  "main": "index.js",
+  "scripts": {
+    "prod": "cp .env_prod .env&&tsc -p tsconfig_prod.json  && pm2 restart ecosystem.config.js --env production",
+    "prod2": "cp .env_prod .env&&tsc -p tsconfig_prod.json && node dist/src/app.js",
+    "dev": "nodemon ./src/app.ts",
+    "start": "tsc && node ./dist/app.js",
+    "test": "tsc && jest --detectOpenHandles --forceExit --runInBand --coverage",
+    "testAuth": "tsc && jest --detectOpenHandles --forceExit auth.test.ts --coverage",
+    "testPost": "tsc && jest --detectOpenHandles --forceExit posts.test.ts",
+    "testComm": "tsc && jest --detectOpenHandles --forceExit comments.test.ts ",
+    "testVal": "tsc && jest --detectOpenHandles --forceExit validate.test.ts ",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanAkrabi/LostAndFound-Backend.git"
+  },
+  "author": "Dan Akrabi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DanAkrabi/LostAndFound-Backend.git"
+  },
+  "homepage": "https://github.com/DanAkrabi/LostAndFound-Backend.git",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "google-auth-library": "^9.15.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui": "^5.18.2",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/supertest": "^6.0.2",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.7",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.7",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1"
+  }
+}
