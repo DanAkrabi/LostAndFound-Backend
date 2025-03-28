@@ -1,105 +1,85 @@
-// commentsController.js
 import commentsModel, { iComment } from "../models/comments_model";
-import { Request, Response } from "express";
 import BaseController from "./base_controller";
+import { Request, Response } from "express";
+import postModel from "../models/posts_model";
 
 class CommentsController extends BaseController<iComment> {
   constructor() {
     super(commentsModel);
   }
-  async create(req: Request, res: Response) {
-    const userId = req.params.userId;
-    const comment = { ...req.body, sender: userId, postId: req.body.postId };
-    req.body = comment;
 
-    super.create(req, res);
+  async create(req: Request, res: Response) {
+    try {
+      const userId = req.params.userId;
+      const fullComment = { ...req.body, sender: userId };
+      req.body = fullComment;
+
+      await super.create(req, res);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ message: "Failed to create comment", error });
+    }
   }
 
-  async getCommentsByPostId(req: Request, res: Response) {
+  async getCommentsByPost(req: Request, res: Response) {
     try {
-      const comments = await commentsModel.find({ postId: req.params.postId });
-      res.json(comments);
-    } catch (error) {
-      console.log(error);
+      const postId = req.params.postId;
+      const comments = await commentsModel.find({ postId });
 
-      res.status(500).json({ message: error });
+      if (!comments.length) {
+        return res
+          .status(404)
+          .json({ message: "No comments found for this post" });
+      }
+
+      res.status(200).json(comments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Server error", error });
+    }
+  }
+
+  async updateComment(req: Request, res: Response) {
+    try {
+      const commentId = req.params.id;
+      const { content } = req.body;
+
+      const updated = await commentsModel.findByIdAndUpdate(
+        commentId,
+        { content },
+        { new: true }
+      );
+
+      if (!updated) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      res.status(200).json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update comment", error });
+    }
+  }
+
+  async deleteComment(req: Request, res: Response) {
+    try {
+      const commentId = req.params.id;
+      const comment = await commentsModel.findByIdAndDelete(commentId);
+
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      // Decrement post numOfComments
+      await postModel.updateOne(
+        { _id: comment.postId },
+        { $inc: { numOfComments: -1 } }
+      );
+
+      res.status(200).json({ message: "Comment deleted", comment });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting comment", error });
     }
   }
 }
+
 export default new CommentsController();
-
-// const commentsController = new BaseController<iComment>(commentsModel); //in this line we create an object of the class BaseController which all the functions will be in the object commentsController
-// const getCommentsByPostId = async (req: Request, res: Response) => {
-//   try {
-//     const comments = await commentsModel.find({ postId: req.params.postId });
-//     res.json(comments);
-//   } catch (error) {
-//     console.log(error);
-
-//     res.status(500).json({ message: error });
-//   }
-// };
-// export default commentsController;
-
-//---------------------Newer Version---------------------
-// import commentsModel, { iComment } from "../models/comments_model";
-// import { Request, Response } from "express";
-// import createController from "./base_controller";
-
-// const commentsController = createController<iComment>(commentsModel); //in this line we create an object of the class BaseController which all the functions will be in the object commentsController
-
-// const getCommentsByPostId = async (req: Request, res: Response) => {
-//   try {
-//     const comments = await commentsModel.find({ postId: req.params.postId });
-//     res.json(comments);
-//   } catch (error) {
-//     console.log(error);
-
-//     res.status(500).json({ message: error });
-//   }
-// };
-// export default commentsController;
-//---------------------Older Version---------------------
-// const createComment = async (req: Request, res: Response) => {
-//   baseController.create(req, res, commentsModel);
-// };
-
-// const updateComment = async (req: Request, res: Response) => {
-//   baseController.update(req, res, commentsModel);
-// };
-
-// const getCommentById = async (req: Request, res: Response) => {
-//   baseController.getById(req, res, commentsModel);
-// };
-
-// const deleteComment = async (req: Request, res: Response) => {
-//   baseController.deleteById(req, res, commentsModel);
-// };
-// const getCommentsByPostId = async (req: Request, res: Response) => {
-//   try {
-//     const comments = await commentsModel.find({ postId: req.params.postId });
-//     res.json(comments);
-//   } catch (error) {
-//     console.log(error);
-
-//     res.status(500).json({ message: error });
-//   }
-// };
-
-// const getAllComments = async (req: Request, res: Response) => {
-//   try {
-//     const comments = await commentsModel.find();
-//     res.json(comments);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ message: error });
-//   }
-// };
-// export default {
-//   getCommentsByPostId,
-//   deleteComment,
-//   updateComment,
-//   createComment,
-//   getCommentById,
-//   getAllComments,
-// };
