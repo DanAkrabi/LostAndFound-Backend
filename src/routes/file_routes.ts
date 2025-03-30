@@ -1,49 +1,24 @@
-import expressModule, { Request, Response } from "express";
-const routingEngine = expressModule.Router();
-const fileUploader = require("multer");
+import express from "express";
+import multer from "multer";
+import path from "path";
+import { handleUpload } from "../controllers/file_controller";
+import { authMiddleware } from "../controllers/auth_controller";
 
-const rootUrl = process.env.DOMAIN_BASE + "/";
-interface FileObject {
-  originalname: string;
-}
+const router = express.Router();
 
-interface DestinationCallback {
-  (error: Error | null, destination: string): void;
-}
-
-interface FilenameCallback {
-  (error: Error | null, filename: string): void;
-}
-
-const fileDestinationConfig = fileUploader.diskStorage({
-  destination: (
-    request: Express.Request,
-    fileObject: FileObject,
-    callback: DestinationCallback
-  ) => {
-    callback(null, "storage/");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../../uploads"));
   },
-  filename: (
-    request: Express.Request,
-    fileObject: FileObject,
-    callback: FilenameCallback
-  ) => {
-    const fileExtension = fileObject.originalname
-      .split(".")
-      .filter(Boolean)
-      .slice(1)
-      .join(".");
-    callback(null, Date.now() + "." + fileExtension);
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${Date.now()}${ext}`;
+    cb(null, filename);
   },
 });
-const uploadHandler = fileUploader({ storage: fileDestinationConfig });
 
-routingEngine.post(
-  "/",
-  uploadHandler.single("file"),
-  (request: Request, response: Response) => {
-    console.log("routingEngine.post(/file: " + rootUrl + request.file?.path);
-    response.status(200).send({ url: rootUrl + request.file?.path });
-  }
-);
-module.exports = routingEngine;
+const upload = multer({ storage });
+
+router.post("/upload", authMiddleware, upload.single("file"), handleUpload);
+
+export default router;

@@ -8,7 +8,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Configure Google OAuth client
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Type definitions
 type TokenPayload = {
@@ -90,65 +91,52 @@ const register = async (req: Request, res: Response) => {
  */
 const googleAuth = async (req: Request, res: Response) => {
   const { token } = req.body;
-
-  if (!token) {
-    res.status(400).send("Google token is required");
-    return;
-  }
-
   try {
-    // Verify the Google ID token
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID!,
     });
 
     const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
-      res.status(400).send("Invalid Google token");
+    if (!payload) {
+      res.status(400).json({ error: "Invalid token" });
       return;
     }
 
-    // Find or create user
-    let user = await userModel.findOne({ email: payload.email });
+    const { email } = payload;
+
+    let user = await userModel.findOne({ email });
 
     if (!user) {
-      // Create new user from Google data
-      const username = payload.email.split("@")[0];
+      const username = email?.split("@")[0];
 
-      user = await userModel.create({
-        email: payload.email,
-        username,
-        // No password for Google users
-        googleId: payload.sub,
+      user = new userModel({
+        username, // שם המשתמש יהיה האימייל ללא ה-@
+        email,
       });
     }
-
-    // Generate authentication tokens
     const tokens = generateTokens(user._id.toString());
     if (!tokens) {
-      res.status(500).send("Failed to generate authentication tokens");
+      res.status(500).json({ error: "Failed to generate tokens" });
       return;
     }
-
-    // Store refresh token
-    if (!user.refreshTokens) {
-      user.refreshTokens = [];
-    }
-    user.refreshTokens.push(tokens.refreshToken);
+    const { accessToken, refreshToken } = tokens;
+    // Generate JWT token
+    user.refreshTokens.push(refreshToken);
     await user.save();
-
-    // Return user info and tokens
     res.status(200).send({
-      _id: user._id,
       email: user.email,
-      username: user.id,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      username: user.username,
+      _id: user._id,
+      imagePath: user.imagePath,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     });
+    return;
   } catch (error) {
-    console.error("Google authentication error:", error);
-    res.status(500).send("Failed to authenticate with Google");
+    console.error(error);
+    res.status(500).json({ error: "Failed to authenticate with Google" });
+    return;
   }
 };
 

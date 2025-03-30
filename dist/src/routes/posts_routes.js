@@ -1,8 +1,12 @@
-import express from "express";
-const router = express.Router();
-import postController from "../controllers/post_controller"; // importing the functions from post.js
-import { authMiddleware } from "../controllers/auth_controller";
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const post_controller_1 = __importDefault(require("../controllers/post_controller")); // importing the functions from post.js
+const auth_controller_1 = require("../controllers/auth_controller");
 /**
  * @swagger
  * /posts:
@@ -19,8 +23,7 @@ import { authMiddleware } from "../controllers/auth_controller";
  *               items:
  *                 $ref: '#/components/schemas/Post'
  */
-router.get("/all", postController.getAll.bind(postController)); // Updated route to avoid conflict
-
+router.get("/", post_controller_1.default.getAll.bind(post_controller_1.default)); //bind attaches the object to the pointers function
 /**
  * @swagger
  * /posts/{id}:
@@ -45,9 +48,8 @@ router.get("/all", postController.getAll.bind(postController)); // Updated route
  *         description: Post not found
  */
 router.get("/:id", (req, res) => {
-  postController.getById(req, res);
+    post_controller_1.default.getById(req, res);
 });
-
 /**
  * @swagger
  * /posts/{id}:
@@ -78,12 +80,10 @@ router.get("/:id", (req, res) => {
  *       404:
  *         description: Post not found
  */
-router.put("/:id", postController.updatePost.bind(postController));
-
+router.put("/:id", post_controller_1.default.updatePost.bind(post_controller_1.default));
 // router.put("/:id", (req, res) => {
 //   postController.update(req, res);
 // });
-
 /**
  * @swagger
  * /posts:
@@ -109,21 +109,8 @@ router.put("/:id", postController.updatePost.bind(postController));
  *       401:
  *         description: Unauthorized
  */
-router.post("/create", authMiddleware, async (req, res, next) => {
-  try {
-    await postController.createPost(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
-// router.post(
-//   "/create",
-//   authMiddleware,
-//   postController.createPost.bind(postController)
-// );
-
+router.post("/posts/create/:userId", auth_controller_1.authMiddleware, post_controller_1.default.createPost.bind(post_controller_1.default));
 // router.post("/", authMiddleware, postController.create.bind(postController));
-
 /**
  * @swagger
  * /posts/{id}:
@@ -147,32 +134,12 @@ router.post("/create", authMiddleware, async (req, res, next) => {
  *       401:
  *         description: Unauthorized
  */
-
-router.delete(
-  "/:id",
-  authMiddleware,
-  postController.deletePost.bind(postController)
-);
-
-router.get("/", postController.getPaginatedPosts.bind(postController)); // Default route for paginated posts
-
+router.delete("/:id", auth_controller_1.authMiddleware, post_controller_1.default.deletePost.bind(post_controller_1.default));
 // router.delete("/:id", authMiddleware, (req, res) => {
 //   postController.deleteById(req, res);
 // });
-// router.put(
-//   "/like/:id",
-//   authMiddleware,
-//   postController.addLike.bind(postController)
-// );
-// router.put(
-//   "/unlike/:id",
-//   authMiddleware,
-//   postController.unLike.bind(postController)
-// );
-// router.get(
-//   "/isLiked/:id",
-//   authMiddleware,
-//   postController.isLiked.bind(postController)
-// );
-
-export default router;
+router.put("/like/:id", auth_controller_1.authMiddleware, post_controller_1.default.addLike.bind(post_controller_1.default));
+router.put("/unlike/:id", auth_controller_1.authMiddleware, post_controller_1.default.unLike.bind(post_controller_1.default));
+router.get("/isLiked/:id", auth_controller_1.authMiddleware, post_controller_1.default.isLiked.bind(post_controller_1.default));
+exports.default = router;
+//# sourceMappingURL=posts_routes.js.map

@@ -4,3 +4,4 @@ node_modules
 .env_prod
 client-cert.pem
 client-key.pem
+coverage

@@ -1,12 +1,24 @@
-import express from "express";
-const router = express.Router();
-import commentsController from "../controllers/comments_controller";
-import { authMiddleware } from "../controllers/auth_controller";
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const comments_controller_1 = __importDefault(require("../controllers/comments_controller"));
+const auth_controller_1 = require("../controllers/auth_controller");
 // router.get("/posts/:postId", (req, res) => {
 //   commentsController.getCommentsByPostId(req, res);
 // });
-
 /**
  * @swagger
  * /comments:
@@ -24,9 +36,8 @@ import { authMiddleware } from "../controllers/auth_controller";
  *                 $ref: '#/components/schemas/Comment'
  */
 router.get("/", (req, res) => {
-  commentsController.getAll(req, res);
+    comments_controller_1.default.getAll(req, res);
 });
-
 /**
  * @swagger
  * /comments:
@@ -56,12 +67,7 @@ router.get("/", (req, res) => {
  *       401:
  *         description: Unauthorized
  */
-router.post(
-  "/",
-  authMiddleware,
-  commentsController.create.bind(commentsController)
-);
-
+router.post("/", auth_controller_1.authMiddleware, comments_controller_1.default.create.bind(comments_controller_1.default));
 /**
  * @swagger
  * /comments/{id}:
@@ -95,9 +101,8 @@ router.post(
  *         description: Bad request
  */
 router.put("/:id", (req, res) => {
-  commentsController.update(req, res);
+    comments_controller_1.default.update(req, res);
 });
-
 /**
  * @swagger
  * /comments/{id}:
@@ -122,9 +127,8 @@ router.put("/:id", (req, res) => {
  *         description: Comment not found
  */
 router.get("/:id", (req, res) => {
-  commentsController.getById(req, res);
+    comments_controller_1.default.getById(req, res);
 });
-
 /**
  * @swagger
  * /comments/{id}:
@@ -148,13 +152,11 @@ router.get("/:id", (req, res) => {
  *       401:
  *         description: Unauthorized
  */
-router.delete("/:id", authMiddleware, async (req, res) => {
-  commentsController.deleteById.bind(commentsController)(req, res);
-});
-
+router.delete("/:id", auth_controller_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    comments_controller_1.default.deleteById.bind(comments_controller_1.default)(req, res);
+}));
 // router.get("/posts/:postId", commentsController.getCommentsByPostId);
-
-export default router;
+exports.default = router;
 //---------------------Backup---------------------
 // router.delete("/:id", (req, res) => {
 //   commentsController.deleteComment(req, res);
@@ -170,3 +172,4 @@ export default router;
 //   commentsController.getCommentById(req, res);
 // });
 // router.get("/posts/:postId", commentsController.getCommentsByPostId);
+//# sourceMappingURL=comments_routes.js.map

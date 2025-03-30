@@ -6,6 +6,7 @@ class BaseController<T> {
 
   constructor(model: Model<T>) {
     this.model = model;
+    3;
   }
 
   async getAll(req: Request, res: Response) {
@@ -34,6 +35,8 @@ class BaseController<T> {
 
   async create(req: Request, res: Response): Promise<void> {
     try {
+      console.log("BaseController.create called with:", req.body);
+
       const newItem = await this.model.create(req.body);
       res.status(201).json(newItem);
     } catch (error) {

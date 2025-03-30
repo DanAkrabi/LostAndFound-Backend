@@ -1,15 +1,18 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
 // auth_routes.ts
-import express from "express";
-const router = express.Router();
-import authController from "../controllers/auth_controller";
-
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const auth_controller_1 = __importDefault(require("../controllers/auth_controller"));
 /**
  * @swagger
  * tags:
  *   name: Auth
  *   description: User authentication endpoints
  */
-
 /**
  * @swagger
  * components:
@@ -91,7 +94,6 @@ import authController from "../controllers/auth_controller";
  *           type: string
  *           description: Google ID token
  */
-
 /**
  * @swagger
  * /auth/register:
@@ -131,8 +133,7 @@ import authController from "../controllers/auth_controller";
  *       500:
  *         description: Server error
  */
-router.post("/register", authController.register);
-router.post("/google", authController.googleAuth);
+router.post("/register", auth_controller_1.default.register);
 /**
  * @swagger
  * /auth/login:
@@ -159,8 +160,7 @@ router.post("/google", authController.googleAuth);
  *       500:
  *         description: Server error
  */
-router.post("/login", authController.login);
-router.post("/google-login", authController.googleAuth);
+router.post("/login", auth_controller_1.default.login);
 // /**
 //  * @swagger
 //  * /auth/google:
@@ -186,7 +186,6 @@ router.post("/google-login", authController.googleAuth);
 //  *         description: Authentication failed
 //  */
 // router.post("/google", authController.googleAuth);
-
 /**
  * @swagger
  * /auth/logout:
@@ -214,8 +213,7 @@ router.post("/google-login", authController.googleAuth);
  *       404:
  *         description: User not found
  */
-router.post("/logout", authController.logout);
-
+router.post("/logout", auth_controller_1.default.logout);
 /**
  * @swagger
  * /auth/refresh:
@@ -242,6 +240,6 @@ router.post("/logout", authController.logout);
  *       404:
  *         description: User not found
  */
-router.post("/refresh", authController.refresh);
-
-export default router;
+router.post("/refresh", auth_controller_1.default.refresh);
+exports.default = router;
+//# sourceMappingURL=auth_routes.js.map
