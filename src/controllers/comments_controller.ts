@@ -2,6 +2,7 @@ import commentsModel, { iComment } from "../models/comments_model";
 import BaseController from "./base_controller";
 import { Request, Response } from "express";
 import postModel from "../models/posts_model";
+import userModel from "../models/users_model";
 
 class CommentsController extends BaseController<iComment> {
   constructor() {
@@ -21,42 +22,107 @@ class CommentsController extends BaseController<iComment> {
     }
   }
 
+  // async getCommentsByPost(req: Request, res: Response) {
+  //   try {
+  //     const postId = req.params.postId;
+  //     const comments = await commentsModel.find({ postId });
+
+  //     const enrichedComments = await Promise.all(
+  //       comments.map(async (comment) => {
+  //         try {
+  //           const user = await userModel.findById(comment.sender);
+
+  //           console.log("🧩 Enriching comment:", comment.content);
+  //           console.log("👤 Sender ID:", comment.sender);
+  //           console.log("📛 Found username:", user?.username);
+  //           console.log("🖼️ Profile image:", user?.profileImage);
+
+  //           return {
+  //             _id: comment._id,
+  //             postId: comment.postId,
+  //             content: comment.content,
+  //             sender: comment.sender, // נשאר ה-ID
+  //             senderUsername: user?.username || "משתמש לא ידוע",
+  //             senderProfileImage: user?.profileImage || "/default-avatar.png",
+  //           };
+  //         } catch (err) {
+  //           console.error("❌ Error finding user for comment:", err);
+  //           return {
+  //             _id: comment._id,
+  //             postId: comment.postId,
+  //             content: comment.content,
+  //             sender: comment.sender,
+  //             senderUsername: "שגיאה",
+  //             senderProfileImage: "/default-avatar.png",
+  //           };
+  //         }
+  //       })
+  //     );
+
+  //     res.status(200).json(enrichedComments);
+  //   } catch (error) {
+  //     console.error("❌ Error fetching comments:", error);
+  //     res.status(500).json({ message: "Server error", error });
+  //   }
+  // }
+
   async getCommentsByPost(req: Request, res: Response) {
     try {
       const postId = req.params.postId;
-      const comments = await commentsModel.find({ postId });
 
-      if (!comments.length) {
-        return res
-          .status(404)
-          .json({ message: "No comments found for this post" });
-      }
+      // קריאה מה-query string
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 5;
 
-      res.status(200).json(comments);
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      res.status(500).json({ message: "Server error", error });
-    }
-  }
+      const skip = (page - 1) * limit;
 
-  async updateComment(req: Request, res: Response) {
-    try {
-      const commentId = req.params.id;
-      const { content } = req.body;
+      // סך כל התגובות לפוסט הזה
+      const totalComments = await commentsModel.countDocuments({ postId });
+      const totalPages = Math.ceil(totalComments / limit);
 
-      const updated = await commentsModel.findByIdAndUpdate(
-        commentId,
-        { content },
-        { new: true }
+      // שליפת תגובות עם skip ו-limit
+      const comments = await commentsModel
+        .find({ postId })
+        .sort({ createdAt: -1 }) // תגובות חדשות קודם
+        .skip(skip)
+        .limit(limit);
+
+      // העשרה עם פרטי משתמש
+      const enrichedComments = await Promise.all(
+        comments.map(async (comment) => {
+          try {
+            const user = await userModel.findById(comment.sender);
+
+            return {
+              _id: comment._id,
+              postId: comment.postId,
+              content: comment.content,
+              sender: comment.sender,
+              senderUsername: user?.username || "משתמש לא ידוע",
+              senderProfileImage: user?.profileImage || "/default-avatar.png",
+            };
+          } catch (err) {
+            return {
+              _id: comment._id,
+              postId: comment.postId,
+              content: comment.content,
+              sender: comment.sender,
+              senderUsername: "שגיאה",
+              senderProfileImage: "/default-avatar.png",
+            };
+          }
+        })
       );
 
-      if (!updated) {
-        return res.status(404).json({ message: "Comment not found" });
-      }
-
-      res.status(200).json(updated);
+      // ✅ תגובה עם pagination
+      res.status(200).json({
+        comments: enrichedComments,
+        currentPage: page,
+        totalPages,
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to update comment", error });
+      console.error("❌ Error fetching comments:", error);
+      res.status(500).json({ message: "Server error", error });
     }
   }
 

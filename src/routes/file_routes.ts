@@ -1,9 +1,11 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { handleUpload } from "../controllers/file_controller";
 import { authMiddleware } from "../controllers/auth_controller";
-
+import {
+  handleUpload,
+  uploadProfileImage,
+} from "../controllers/file_controller";
 const router = express.Router();
 
 const storage = multer.diskStorage({
@@ -20,5 +22,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/upload", authMiddleware, upload.single("file"), handleUpload);
+router.post(
+  "/uploadProfileImage",
+  authMiddleware, // אם את רוצה אימות
+  upload.single("image"),
+  uploadProfileImage
+);
 
 export default router;

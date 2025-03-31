@@ -5,7 +5,8 @@ import postModel from "../models/posts_model"; // Import the post model
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
-
+import path from "path";
+import fs from "fs";
 dotenv.config();
 
 // Configure Google OAuth client
@@ -413,4 +414,11 @@ export const decodeToken = (token: string): string | null => {
     return null; // If there's an error, return null
   }
 };
-export default { register, login, logout, refresh, googleAuth, updateUser };
+export default {
+  register,
+  login,
+  logout,
+  refresh,
+  googleAuth,
+  updateUser,
+};

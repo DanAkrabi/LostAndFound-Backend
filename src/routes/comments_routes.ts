@@ -65,42 +65,6 @@ router.post(
 /**
  * @swagger
  * /comments/{id}:
- *   put:
- *     summary: Update a comment by ID
- *     tags: [Comments]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the comment to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               sender:
- *                 type: string
- *               content:
- *                 type: string
- *     responses:
- *       200:
- *         description: Comment updated successfully
- *       404:
- *         description: Comment not found
- *       400:
- *         description: Bad request
- */
-router.put("/:id", (req, res) => {
-  commentsController.update(req, res);
-});
-
-/**
- * @swagger
- * /comments/{id}:
  *   get:
  *     summary: Retrieve a comment by ID
  *     tags: [Comments]
@@ -152,6 +116,16 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   commentsController.deleteById.bind(commentsController)(req, res);
 });
 
+router.post(
+  //check if really need
+  "/:userId",
+  authMiddleware,
+  commentsController.create.bind(commentsController)
+);
+
+router.get("/getCommentsByPostID/:postId", (req, res) => {
+  commentsController.getCommentsByPost.bind(commentsController)(req, res);
+});
 // router.get("/posts/:postId", commentsController.getCommentsByPostId);
 
 export default router;

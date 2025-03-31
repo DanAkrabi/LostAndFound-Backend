@@ -12,34 +12,6 @@ class PostController extends BaseController<iPost> {
     super(model);
   }
 
-  // async getPaginatedPosts(req: Request, res: Response) {
-  //   try {
-  //     const page = parseInt(req.query.page as string) || 1;
-  //     const limit = parseInt(req.query.limit as string) || 6;
-  //     const skip = (page - 1) * limit;
-
-  //     const totalPosts = await this.model.countDocuments();
-
-  //     const posts = await this.model
-  //       .find()
-  //       .sort({ createdAt: -1 }) // הכי חדשים קודם
-  //       .skip(skip)
-  //       .limit(limit);
-  //     console.log("Paginated Posts:", posts);
-  //     console.log("limit:", limit);
-  //     console.log("page number:", page);
-  //     console.log("total Posts:", totalPosts);
-  //     res.status(200).json({
-  //       posts,
-  //       currentPage: page,
-  //       totalPages: Math.ceil(totalPosts / limit),
-  //     });
-  //   } catch (error) {
-  //     console.error("Error fetching paginated posts:", error);
-  //     res.status(500).json({ message: "Server error" });
-  //   }
-  // }
-
   getPaginatedPosts = async (req: Request, res: Response) => {
     console.log("🟢 Reached getPaginatedPosts route");
 
@@ -62,81 +34,6 @@ class PostController extends BaseController<iPost> {
     console.log("🔢 Posts returned:", posts.length);
     res.json({ posts, currentPage: page, totalPages });
   };
-
-  // async createPost(req: Request, res: Response) {
-  //   console.log("Create Post - Received Request");
-  //   console.log("Full Request Body:", req.body);
-  //   console.log("userId from req.params.userId:", req.params.userId);
-  //   try {
-  //     // Destructure request body with defaults
-  //     const {
-  //       title = "",
-  //       content = "",
-  //       sender = "",
-  //       location = null,
-  //       imagePath = "",
-  //     } = req.body;
-
-  //     // Validate required fields
-  //     const missingFields: string[] = [];
-  //     if (!sender) missingFields.push("sender");
-  //     if (!content) missingFields.push("content");
-  //     if (!location) missingFields.push("location");
-
-  //     if (missingFields.length > 0) {
-  //       res.status(400).json({
-  //         error: "Missing required fields",
-  //         missingFields,
-  //       });
-  //       return;
-  //     }
-
-  //     // Image URL handling
-  //     let imageUrl = imagePath;
-  //     console.log("Image URL:", imageUrl);
-  //     if (!imageUrl) {
-  //       try {
-  //         // Generate image if no URL provided
-  //         imageUrl = await generateImage(title || "Default Post");
-  //       } catch (imageError) {
-  //         console.error("Image generation error:", imageError);
-  //         imageUrl = ""; // Fallback to empty string
-  //       }
-  //     }
-
-  //     // Prepare post data
-  //     const post = {
-  //       title: title || "Untitled Post",
-  //       content: content,
-  //       sender,
-  //       location,
-  //       imageUrl,
-  //     };
-
-  //     // Log the final post data before creation
-  //     console.log("Creating Post:", post);
-
-  //     // Save the new post to the database
-  //     const newPost = await postsModel.create(post);
-
-  //     console.log("Post Created Successfully:", newPost);
-  //     res.status(201).json(newPost);
-  //     return;
-  //   } catch (error) {
-  //     console.error("Detailed Error in Post Creation:", {
-  //       error,
-  //       errorName: error instanceof Error ? error.name : "Unknown Error",
-  //       errorMessage:
-  //         error instanceof Error ? error.message : "No error message",
-  //       stack: error instanceof Error ? error.stack : "No stack trace",
-  //     });
-  //     res.status(500).json({
-  //       error: "Internal Server Error",
-  //       details: error instanceof Error ? error.message : "Unknown error",
-  //     });
-  //     return;
-  //   }
-  // }
 
   async createPost(req: Request, res: Response) {
     console.log("Create Post - Received Request");
