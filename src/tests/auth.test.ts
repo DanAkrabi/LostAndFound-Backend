@@ -26,14 +26,14 @@ type UserInfo = {
   accessToken?: string;
   refreshToken?: string;
   username?: string;
-  imagePath?: string;
+  profileImage?: string;
 };
 
 const userInfo: UserInfo = {
   email: "DanAkrabii@gmail.com",
   password: "123456",
   username: "DanAkrabi",
-  imagePath: "image path",
+  profileImage: "image path",
 };
 const userLogin = {
   emailOrUsername: "DanAkrabi",

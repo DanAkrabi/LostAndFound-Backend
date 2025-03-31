@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import userModel from "../models/users_model";
 import bcrypt from "bcrypt";
+import postModel from "../models/posts_model"; // Import the post model
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
@@ -15,6 +16,51 @@ const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 type TokenPayload = {
   _id: string;
   random?: number;
+};
+
+const updateUser = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const { username, email, profileImage } = req.body;
+
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized: Missing user ID" });
+  }
+
+  try {
+    const user = await userModel.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+    }
+
+    const oldUsername = user ? user.username : null; // ✅ קחי את השם לפני השינוי
+
+    // עדכון שדות אם השתנו
+    if (user) {
+      if (username) user.username = username;
+      if (email) user.email = email;
+      if (profileImage) user.profileImage = profileImage;
+    }
+
+    const updatedUser = user ? await user.save() : null;
+
+    // עדכון הפוסטים אם השם השתנה
+    if (username && username !== oldUsername) {
+      await postModel.updateMany(
+        { sender: oldUsername },
+        { $set: { sender: username } }
+      );
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      username: updatedUser?.username || null,
+      email: updatedUser?.email || null,
+      profileImage: updatedUser?.profileImage || null,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 /**
@@ -128,7 +174,7 @@ const googleAuth = async (req: Request, res: Response) => {
       email: user.email,
       username: user.username,
       _id: user._id,
-      imagePath: user.imagePath,
+      profileImage: user.profileImage,
       accessToken: accessToken,
       refreshToken: refreshToken,
     });
@@ -192,7 +238,7 @@ const login = async (req: Request, res: Response) => {
     res.status(200).send({
       email: user.email,
       _id: user._id,
-      imagePath: user.imagePath,
+      profileImage: user.profileImage,
       username: user.username,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -367,4 +413,4 @@ export const decodeToken = (token: string): string | null => {
     return null; // If there's an error, return null
   }
 };
-export default { register, login, logout, refresh, googleAuth };
+export default { register, login, logout, refresh, googleAuth, updateUser };

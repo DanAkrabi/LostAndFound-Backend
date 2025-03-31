@@ -2,6 +2,7 @@
 import express from "express";
 const router = express.Router();
 import authController from "../controllers/auth_controller";
+import { authMiddleware } from "../controllers/auth_controller";
 
 /**
  * @swagger
@@ -243,5 +244,6 @@ router.post("/logout", authController.logout);
  *         description: User not found
  */
 router.post("/refresh", authController.refresh);
+router.put("/users/:userId", authMiddleware, authController.updateUser);
 
 export default router;

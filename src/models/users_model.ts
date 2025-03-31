@@ -5,7 +5,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   username?: string;
-  imagePath?: string;
+  profileImage?: string;
   _id: string;
   refreshTokens: string[];
   likedPosts?: string[];
@@ -16,7 +16,7 @@ const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   username: { type: String, required: false, unique: false },
-  imagePath: { type: String, required: false, default: "" },
+  profileImage: { type: String, required: false, default: "" },
   likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }], // Add likedPosts field
 
   refreshTokens: { type: [String], default: [] },

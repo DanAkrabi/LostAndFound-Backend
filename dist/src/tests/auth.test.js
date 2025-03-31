@@ -1,16 +1,42 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+var __awaiter =
+  (this && this.__awaiter) ||
+  function (thisArg, _arguments, P, generator) {
+    function adopt(value) {
+      return value instanceof P
+        ? value
+        : new P(function (resolve) {
+            resolve(value);
+          });
+    }
     return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      function fulfilled(value) {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      }
+      function rejected(value) {
+        try {
+          step(generator["throw"](value));
+        } catch (e) {
+          reject(e);
+        }
+      }
+      function step(result) {
+        result.done
+          ? resolve(result.value)
+          : adopt(result.value).then(fulfilled, rejected);
+      }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+  };
+var __importDefault =
+  (this && this.__importDefault) ||
+  function (mod) {
+    return mod && mod.__esModule ? mod : { default: mod };
+  };
 Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -19,520 +45,605 @@ const posts_model_1 = __importDefault(require("../models/posts_model"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const server_1 = __importDefault(require("../server"));
 let app;
-beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
+beforeAll(() =>
+  __awaiter(void 0, void 0, void 0, function* () {
     app = yield (0, server_1.default)();
     yield users_model_1.default.deleteMany(); // Ensure this operation is awaited
     yield posts_model_1.default.deleteMany();
-}));
-afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+  })
+);
+afterAll(() =>
+  __awaiter(void 0, void 0, void 0, function* () {
     yield mongoose_1.default.connection.close(); // Close the database connection asynchronously
-}));
+  })
+);
 const userInfo = {
-    email: "DanAkrabii@gmail.com",
-    password: "123456",
-    username: "DanAkrabi",
-    imagePath: "image path",
+  email: "DanAkrabii@gmail.com",
+  password: "123456",
+  username: "DanAkrabi",
+  profileImage: "image path",
 };
 const userLogin = {
-    emailOrUsername: "DanAkrabi",
-    password: "123456",
+  emailOrUsername: "DanAkrabi",
+  password: "123456",
 };
 describe("Auth tests", () => {
-    test("Test 1 - Auth Registration / Double registration", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/register").send(userInfo);
-        expect(response.status).toBe(201);
-        // Double registration should fail
-        const response2 = yield (0, supertest_1.default)(app).post("/auth/register").send(userInfo);
-        expect(response2.status).toBe(400);
-        console.log("Test 1");
+  test("Test 1 - Auth Registration / Double registration", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/register")
+        .send(userInfo);
+      expect(response.status).toBe(201);
+      // Double registration should fail
+      const response2 = yield (0, supertest_1.default)(app)
+        .post("/auth/register")
+        .send(userInfo);
+      expect(response2.status).toBe(400);
+      console.log("Test 1");
     }));
-    test("Test 2 - Auth Login - First Valid/Second Same Email", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send(userLogin);
-        expect(response.status).toBe(200);
-        const token = response.body.accessToken;
-        expect(token).toBeDefined();
-        const userId = response.body._id;
-        expect(userId).toBeDefined();
-        const accessToken = response.body.accessToken;
-        const refreshToken = response.body.refreshToken;
-        expect(accessToken).toBeDefined();
-        expect(refreshToken).toBeDefined();
-        expect(userId).toBeDefined();
-        // Update the user info with returned values
-        userInfo._id = userId;
-        userInfo.accessToken = accessToken;
-        userInfo.refreshToken = refreshToken;
-        console.log("Test 2");
+  test("Test 2 - Auth Login - First Valid/Second Same Email", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send(userLogin);
+      expect(response.status).toBe(200);
+      const token = response.body.accessToken;
+      expect(token).toBeDefined();
+      const userId = response.body._id;
+      expect(userId).toBeDefined();
+      const accessToken = response.body.accessToken;
+      const refreshToken = response.body.refreshToken;
+      expect(accessToken).toBeDefined();
+      expect(refreshToken).toBeDefined();
+      expect(userId).toBeDefined();
+      // Update the user info with returned values
+      userInfo._id = userId;
+      userInfo.accessToken = accessToken;
+      userInfo.refreshToken = refreshToken;
+      console.log("Test 2");
     }));
-    test("Test 3 - Auth register - missing Data", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/register").send();
-        expect(response.status).toBe(400);
-        expect(response.text).toBe("Email and password are required");
-        console.log("Test 3");
+  test("Test 3 - Auth register - missing Data", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/register")
+        .send();
+      expect(response.status).toBe(400);
+      expect(response.text).toBe("Email and password are required");
+      console.log("Test 3");
     }));
-    test("Test 4 - Auth Login - Wrong Email", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            emailOrUsername: "dantest@gmail.com",
-            password: userInfo.password,
+  test("Test 4 - Auth Login - Wrong Email", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          emailOrUsername: "dantest@gmail.com",
+          password: userInfo.password,
         });
-        expect(response.status).toBe(400);
-        expect(response.text).toBe("Check email/username or password");
-        console.log("Test 4");
+      expect(response.status).toBe(400);
+      expect(response.text).toBe("Check email/username or password");
+      console.log("Test 4");
     }));
-    test("Test 5 - Auth Login - Wrong Password", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            emailOrUsername: userInfo.email,
-            password: "1234567",
+  test("Test 5 - Auth Login - Wrong Password", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          emailOrUsername: userInfo.email,
+          password: "1234567",
         });
-        expect(response.status).toBe(400);
-        expect(response.text).toBe("Check email/username or password");
-        console.log("Test 5");
+      expect(response.status).toBe(400);
+      expect(response.text).toBe("Check email/username or password");
+      console.log("Test 5");
     }));
-    test("Test 6 - make sure tokens not equals", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            email: userInfo.email,
-            password: userInfo.password,
+  test("Test 6 - make sure tokens not equals", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          email: userInfo.email,
+          password: userInfo.password,
         });
-        expect(response.body.accessToken).not.toEqual(userInfo.accessToken);
-        console.log("Test 6");
+      expect(response.body.accessToken).not.toEqual(userInfo.accessToken);
+      console.log("Test 6");
     }));
-    test("Test 7 - Get Protected API", () => __awaiter(void 0, void 0, void 0, function* () {
-        // Unauthorized request
-        const response = yield (0, supertest_1.default)(app).post("/posts").send({
-            sender: userInfo._id,
-            title: "Test Title",
-            content: "Test Content",
-        });
-        expect(response.status).not.toBe(200);
-        // Authorized request
-        const response2 = yield (0, supertest_1.default)(app)
-            .post("/posts/create")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 7 - Get Protected API", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      // Unauthorized request
+      const response = yield (0, supertest_1.default)(app).post("/posts").send({
+        sender: userInfo._id,
+        title: "Test Title",
+        content: "Test Content",
+      });
+      expect(response.status).not.toBe(200);
+      // Authorized request
+      const response2 = yield (0, supertest_1.default)(app)
+        .post("/posts/create")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            content: "Item content",
-            title: "Lost",
-            sender: userInfo.username,
-            imagePath: "eferwcom",
-            location: "test location",
+        .send({
+          content: "Item content",
+          title: "Lost",
+          sender: userInfo.username,
+          imagePath: "eferwcom",
+          location: "test location",
         });
-        expect(response2.status).toBe(201);
-        console.log("Test 7");
+      expect(response2.status).toBe(201);
+      console.log("Test 7");
     }));
-    test("Test 8 - Get Protect API - Unvalid Token", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .post("/posts")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken + "1",
+  test("Test 8 - Get Protect API - Unvalid Token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/posts")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken + "1",
         })
-            .send({
-            content: "Test Content",
-            title: "Test Title",
-            sender: "unvalid sender",
+        .send({
+          content: "Test Content",
+          title: "Test Title",
+          sender: "unvalid sender",
         });
-        expect(response.status).not.toBe(201);
-        console.log("Test 8");
+      expect(response.status).not.toBe(201);
+      console.log("Test 8");
     }));
-    const RefreshTokenTest = () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/refresh").send({
-            refreshToken: userInfo.refreshToken,
+  const RefreshTokenTest = () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh")
+        .send({
+          refreshToken: userInfo.refreshToken,
         });
-        expect(response.status).toBe(200);
-        expect(response.body.accessToken).toBeDefined();
-        expect(response.body.refreshToken).toBeDefined();
-        userInfo.accessToken = response.body.accessToken;
-        userInfo.refreshToken = response.body.refreshToken;
+      expect(response.status).toBe(200);
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
+      userInfo.accessToken = response.body.accessToken;
+      userInfo.refreshToken = response.body.refreshToken;
     });
-    test("Test 9 - Refresh Token", () => __awaiter(void 0, void 0, void 0, function* () {
-        yield RefreshTokenTest;
+  test("Test 9 - Refresh Token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      yield RefreshTokenTest;
     }));
-    test("Test 9 again - Refresh Token", () => __awaiter(void 0, void 0, void 0, function* () {
-        yield RefreshTokenTest;
+  test("Test 9 again - Refresh Token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      yield RefreshTokenTest;
     }));
-    test("Test 10 - logout - invalidate refresh token", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/logout").send({
-            refreshToken: userInfo.refreshToken,
+  test("Test 10 - logout - invalidate refresh token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout")
+        .send({
+          refreshToken: userInfo.refreshToken,
         });
-        expect(response.status).toBe(200);
-        expect(response.text).toBe("Successfully logged out");
-        const response2 = yield (0, supertest_1.default)(app).post("/auth/refresh").send({
-            refreshToken: userInfo.refreshToken,
+      expect(response.status).toBe(200);
+      expect(response.text).toBe("Successfully logged out");
+      const response2 = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh")
+        .send({
+          refreshToken: userInfo.refreshToken,
         });
-        expect(response2.status).not.toBe(200);
-        console.log("Test 10");
+      expect(response2.status).not.toBe(200);
+      console.log("Test 10");
     }));
-    test("Test 11 - refresh token multi usage", () => __awaiter(void 0, void 0, void 0, function* () {
-        //login to new acount
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            emailOrUsername: userInfo.email,
-            password: userInfo.password,
+  test("Test 11 - refresh token multi usage", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      //login to new acount
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          emailOrUsername: userInfo.email,
+          password: userInfo.password,
         });
-        expect(response.status).toBe(200);
-        userInfo.refreshToken = response.body.refreshToken;
-        userInfo.accessToken = response.body.accessToken;
-        //refresh token, and get new refresh token
-        const response2 = yield (0, supertest_1.default)(app).post("/auth/refresh").send({
-            refreshToken: userInfo.refreshToken,
+      expect(response.status).toBe(200);
+      userInfo.refreshToken = response.body.refreshToken;
+      userInfo.accessToken = response.body.accessToken;
+      //refresh token, and get new refresh token
+      const response2 = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh")
+        .send({
+          refreshToken: userInfo.refreshToken,
         });
-        const newRefreshToken = response2.body.refreshToken;
-        //use the old refresh token second time - delete the new one also, action should fail
-        const response3 = yield (0, supertest_1.default)(app).post("/auth/refresh").send({
-            refreshToken: userInfo.refreshToken,
+      const newRefreshToken = response2.body.refreshToken;
+      //use the old refresh token second time - delete the new one also, action should fail
+      const response3 = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh")
+        .send({
+          refreshToken: userInfo.refreshToken,
         });
-        expect(response3.status).not.toBe(200);
-        //use the new refresh token, action should fail
-        const response4 = yield (0, supertest_1.default)(app).post("/auth/refresh").send({
-            refreshToken: newRefreshToken,
+      expect(response3.status).not.toBe(200);
+      //use the new refresh token, action should fail
+      const response4 = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh")
+        .send({
+          refreshToken: newRefreshToken,
         });
-        expect(response4.status).not.toBe(200);
-        console.log("Test 11");
+      expect(response4.status).not.toBe(200);
+      console.log("Test 11");
     }));
-    jest.setTimeout(10000);
-    test("Test 12 - Timeout", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            emailOrUsername: userInfo.email,
-            password: userInfo.password,
+  jest.setTimeout(10000);
+  test("Test 12 - Timeout", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          emailOrUsername: userInfo.email,
+          password: userInfo.password,
         });
-        expect(response.status).toBe(200);
-        userInfo.refreshToken = response.body.refreshToken;
-        userInfo.accessToken = response.body.accessToken;
-        yield new Promise((r) => setTimeout(r, 5000));
-        const response2 = yield (0, supertest_1.default)(app)
-            .post("/posts")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response.status).toBe(200);
+      userInfo.refreshToken = response.body.refreshToken;
+      userInfo.accessToken = response.body.accessToken;
+      yield new Promise((r) => setTimeout(r, 5000));
+      const response2 = yield (0, supertest_1.default)(app)
+        .post("/posts")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            sender: "invalid sender",
-            title: " invalid Test Title",
-            content: " invalid Test Content",
+        .send({
+          sender: "invalid sender",
+          title: " invalid Test Title",
+          content: " invalid Test Content",
         });
-        expect(response2.status).not.toBe(200);
-        console.log("Test 12");
+      expect(response2.status).not.toBe(200);
+      console.log("Test 12");
     }));
-    test("Test 13 - Logout not valid refresh token", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .post("/auth/logout")
-            .send({
-            refreshToken: userInfo.refreshToken + "1",
+  test("Test 13 - Logout not valid refresh token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout")
+        .send({
+          refreshToken: userInfo.refreshToken + "1",
         });
-        expect(response.status).toBe(403);
-        expect(response.text).toBe("Invalid Refresh Token");
-        console.log("Test 13");
+      expect(response.status).toBe(403);
+      expect(response.text).toBe("Invalid Refresh Token");
+      console.log("Test 13");
     }));
-    test("Test 14 - Logout no refresh token", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/logout").send({});
-        expect(response.status).toBe(400);
-        expect(response.text).toBe("Refresh token is required");
-        console.log("Test 14");
+  test("Test 14 - Logout no refresh token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout")
+        .send({});
+      expect(response.status).toBe(400);
+      expect(response.text).toBe("Refresh token is required");
+      console.log("Test 14");
     }));
-    test("Test 14 - invalid refreshtoken", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/logout").send({
-            refreshToken: userInfo.accessToken,
+  test("Test 14 - invalid refreshtoken", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout")
+        .send({
+          refreshToken: userInfo.accessToken,
         });
-        expect(response.status).toBe(403);
-        expect(response.text).toBe("User do not have this refresh token");
-        console.log("Test 14");
+      expect(response.status).toBe(403);
+      expect(response.text).toBe("User do not have this refresh token");
+      console.log("Test 14");
     }));
-    test("Test15 - Auth login - missing email or password", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            password: "123456",
+  test("Test15 - Auth login - missing email or password", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          password: "123456",
         });
-        expect(response.status).toBe(400);
-        expect(response.text).toBe("Email and Password are required");
-        console.log("Test 15");
+      expect(response.status).toBe(400);
+      expect(response.text).toBe("Email and Password are required");
+      console.log("Test 15");
     }));
-    test("test 16 - problem logout", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .post("/auth/logout")
-            .send({
-            refreshToken: userInfo.refreshToken, // Add the refreshToken to the body
+  test("test 16 - problem logout", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout")
+        .send({
+          refreshToken: userInfo.refreshToken, // Add the refreshToken to the body
         })
-            .query({ userId: "123" }); // Add query parameters using .query()
-        // Add your assertions
-        expect(response.status).toBe(403); // Adjust based on expected status code
-        expect(response.text).toBe("User do not have this refresh token"); // Adjust based on expected response
-        console.log("Test 16");
+        .query({ userId: "123" }); // Add query parameters using .query()
+      // Add your assertions
+      expect(response.status).toBe(403); // Adjust based on expected status code
+      expect(response.text).toBe("User do not have this refresh token"); // Adjust based on expected response
+      console.log("Test 16");
     }));
-    test("test 17 - refresh without refresh token", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).post("/auth/refresh").send({}); // Send an empty object
-        expect(response.status).toBe(400); // Adjust based on expected status code
-        expect(response.text).toBe("Refresh token is required"); // Adjust based on expected response
-        console.log("Test 17");
+  test("test 17 - refresh without refresh token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh")
+        .send({}); // Send an empty object
+      expect(response.status).toBe(400); // Adjust based on expected status code
+      expect(response.text).toBe("Refresh token is required"); // Adjust based on expected response
+      console.log("Test 17");
     }));
-    test("Should return 500 if TOKEN_SECRET is missing", () => __awaiter(void 0, void 0, void 0, function* () {
-        const originalEnv = process.env.TOKEN_SECRET; // Save the original value
-        // Temporarily remove TOKEN_SECRET
-        delete process.env.TOKEN_SECRET;
-        const response = yield (0, supertest_1.default)(app)
-            .post("/auth/refresh") // Replace with your actual endpoint
-            .send({
-            refreshToken: "dummy_refresh_token", // Any token value
+  test("Should return 500 if TOKEN_SECRET is missing", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const originalEnv = process.env.TOKEN_SECRET; // Save the original value
+      // Temporarily remove TOKEN_SECRET
+      delete process.env.TOKEN_SECRET;
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/refresh") // Replace with your actual endpoint
+        .send({
+          refreshToken: "dummy_refresh_token", // Any token value
         });
-        // Restore TOKEN_SECRET after the test
-        process.env.TOKEN_SECRET = originalEnv;
-        expect(response.status).toBe(500);
-        expect(response.text).toBe("Missing Token Secret");
+      // Restore TOKEN_SECRET after the test
+      process.env.TOKEN_SECRET = originalEnv;
+      expect(response.status).toBe(500);
+      expect(response.text).toBe("Missing Token Secret");
     }));
-    test("Test 18 - logout without token secret", () => __awaiter(void 0, void 0, void 0, function* () {
-        const originalEnv = process.env.TOKEN_SECRET; // Save the original value
-        // Temporarily remove TOKEN_SECRET
-        delete process.env.TOKEN_SECRET;
-        const response = yield (0, supertest_1.default)(app)
-            .post("/auth/logout") // Replace with your actual endpoint
-            .send({
-            refreshToken: userInfo.refreshToken, // Any token value
+  test("Test 18 - logout without token secret", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const originalEnv = process.env.TOKEN_SECRET; // Save the original value
+      // Temporarily remove TOKEN_SECRET
+      delete process.env.TOKEN_SECRET;
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout") // Replace with your actual endpoint
+        .send({
+          refreshToken: userInfo.refreshToken, // Any token value
         });
-        // Restore TOKEN_SECRET after the test
-        process.env.TOKEN_SECRET = originalEnv;
-        expect(response.status).toBe(500);
-        expect(response.text).toBe("Server Error: Missing token configuration");
-        console.log("Test 18");
+      // Restore TOKEN_SECRET after the test
+      process.env.TOKEN_SECRET = originalEnv;
+      expect(response.status).toBe(500);
+      expect(response.text).toBe("Server Error: Missing token configuration");
+      console.log("Test 18");
     }));
-    test("Test 19 - upload post without secret token", () => __awaiter(void 0, void 0, void 0, function* () {
-        const originalEnv = process.env.TOKEN_SECRET; // Save the original value
-        // Temporarily remove TOKEN_SECRET
-        delete process.env.TOKEN_SECRET;
-        const response = yield (0, supertest_1.default)(app)
-            .post("/posts")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 19 - upload post without secret token", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const originalEnv = process.env.TOKEN_SECRET; // Save the original value
+      // Temporarily remove TOKEN_SECRET
+      delete process.env.TOKEN_SECRET;
+      const response = yield (0, supertest_1.default)(app)
+        .post("/posts")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            content: "Test15 Content",
-            title: "Test15 Title",
-            sender: userInfo._id,
+        .send({
+          content: "Test15 Content",
+          title: "Test15 Title",
+          sender: userInfo._id,
         });
-        // Restore TOKEN_SECRET after the test
-        process.env.TOKEN_SECRET = originalEnv;
-        expect(response.status).toBe(500);
-        expect(response.text).toBe("Missing Token Secret");
-        console.log("Test 19");
+      // Restore TOKEN_SECRET after the test
+      process.env.TOKEN_SECRET = originalEnv;
+      expect(response.status).toBe(500);
+      expect(response.text).toBe("Missing Token Secret");
+      console.log("Test 19");
     }));
-    test("Test 20 - login  without token secret", () => __awaiter(void 0, void 0, void 0, function* () {
-        const originalTokenSecret = process.env.TOKEN_SECRET;
-        // Temporarily remove the TOKEN_SECRET
-        delete process.env.TOKEN_SECRET;
-        const response = yield (0, supertest_1.default)(app).post("/auth/login").send({
-            emailOrUsername: userInfo.email,
-            password: userInfo.password,
+  test("Test 20 - login  without token secret", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const originalTokenSecret = process.env.TOKEN_SECRET;
+      // Temporarily remove the TOKEN_SECRET
+      delete process.env.TOKEN_SECRET;
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/login")
+        .send({
+          emailOrUsername: userInfo.email,
+          password: userInfo.password,
         });
-        // Restore the TOKEN_SECRET after the test
-        process.env.TOKEN_SECRET = originalTokenSecret;
-        expect(response.status).toBe(500);
-        expect(response.text).toBe("Cannot Generate Tokens");
-        console.log("Test 20");
+      // Restore the TOKEN_SECRET after the test
+      process.env.TOKEN_SECRET = originalTokenSecret;
+      expect(response.status).toBe(500);
+      expect(response.text).toBe("Cannot Generate Tokens");
+      console.log("Test 20");
     }));
-    test("Logout end point", () => __awaiter(void 0, void 0, void 0, function* () {
-        const mockFindById = jest
-            .spyOn(users_model_1.default, "findById")
-            .mockResolvedValueOnce(null);
-        // Generate a valid refresh token
-        const validRefreshToken = jsonwebtoken_1.default.sign({ _id: "nonexistentUserId" }, process.env.TOKEN_SECRET, {
-            expiresIn: "1h",
+  test("Logout end point", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const mockFindById = jest
+        .spyOn(users_model_1.default, "findById")
+        .mockResolvedValueOnce(null);
+      // Generate a valid refresh token
+      const validRefreshToken = jsonwebtoken_1.default.sign(
+        { _id: "nonexistentUserId" },
+        process.env.TOKEN_SECRET,
+        {
+          expiresIn: "1h",
+        }
+      );
+      // Send request to logout endpoint
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/logout")
+        .send({
+          refreshToken: validRefreshToken,
         });
-        // Send request to logout endpoint
-        const response = yield (0, supertest_1.default)(app).post("/auth/logout").send({
-            refreshToken: validRefreshToken,
-        });
-        // Assertions
-        expect(response.status).toBe(404);
-        expect(response.text).toBe("Invalid Refresh Token11");
-        // Restore the mocked method
-        mockFindById.mockRestore();
+      // Assertions
+      expect(response.status).toBe(404);
+      expect(response.text).toBe("Invalid Refresh Token11");
+      // Restore the mocked method
+      mockFindById.mockRestore();
     }));
-    test("Test 21 - getImg", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .get(`/auth/getImg/`)
-            .query({ username: userInfo.username })
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 21 - getImg", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .get(`/auth/getImg/`)
+        .query({ username: userInfo.username })
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send();
-        expect(response.status).toBe(200);
-        expect(response.text).toBe("image path");
-        const response2 = yield (0, supertest_1.default)(app)
-            .get("/auth/getImg")
-            .query({ username: "avi" })
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+        .send();
+      expect(response.status).toBe(200);
+      expect(response.text).toBe("image path");
+      const response2 = yield (0, supertest_1.default)(app)
+        .get("/auth/getImg")
+        .query({ username: "avi" })
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send();
-        expect(response2.status).toBe(404);
-        expect(response2.text).toBe("Couldnt find user");
-        const response3 = yield (0, supertest_1.default)(app)
-            .get("/auth/getImg")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+        .send();
+      expect(response2.status).toBe(404);
+      expect(response2.text).toBe("Couldnt find user");
+      const response3 = yield (0, supertest_1.default)(app)
+        .get("/auth/getImg")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send();
-        expect(response3.status).toBe(400);
-        expect(response3.text).toBe("Missing Data");
-        const response4 = yield (0, supertest_1.default)(app)
-            .get("/auth/getImg")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken + "1",
+        .send();
+      expect(response3.status).toBe(400);
+      expect(response3.text).toBe("Missing Data");
+      const response4 = yield (0, supertest_1.default)(app)
+        .get("/auth/getImg")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken + "1",
         })
-            .send();
-        expect(response4.status).toBe(403);
-        expect(response4.text).toBe("Invalid Token");
-        console.log("Test 21");
+        .send();
+      expect(response4.status).toBe(403);
+      expect(response4.text).toBe("Invalid Token");
+      console.log("Test 21");
     }));
-    test("Test 22 - saveImg", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .post("/auth/myuser/saveImg")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 22 - saveImg", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .post("/auth/myuser/saveImg")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            file: "newImagePath",
-            username: userInfo.username,
+        .send({
+          file: "newImagePath",
+          username: userInfo.username,
         });
-        expect(response.status).toBe(200);
-        expect(response.text).toBe("newImagePath");
-        const response2 = yield (0, supertest_1.default)(app)
-            .post("/auth/myuser/saveImg")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response.status).toBe(200);
+      expect(response.text).toBe("newImagePath");
+      const response2 = yield (0, supertest_1.default)(app)
+        .post("/auth/myuser/saveImg")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            username: "avi",
-            file: "newImagePath",
+        .send({
+          username: "avi",
+          file: "newImagePath",
         });
-        expect(response2.status).toBe(404);
-        expect(response2.text).toBe("Couldnt find user");
-        const response3 = yield (0, supertest_1.default)(app)
-            .post("/auth/myuser/saveImg")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response2.status).toBe(404);
+      expect(response2.text).toBe("Couldnt find user");
+      const response3 = yield (0, supertest_1.default)(app)
+        .post("/auth/myuser/saveImg")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            file: "newImagePath",
+        .send({
+          file: "newImagePath",
         });
-        expect(response3.status).toBe(400);
-        expect(response3.text).toBe("Missing Data");
+      expect(response3.status).toBe(400);
+      expect(response3.text).toBe("Missing Data");
     }));
-    test("Test 23 - updateAccount", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/updateAccount")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 23 - updateAccount", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/updateAccount")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            oldUsername: userInfo.username,
-            newUsername: "Jesus",
+        .send({
+          oldUsername: userInfo.username,
+          newUsername: "Jesus",
         });
-        expect(response.status).toBe(200);
-        expect(response.text).toBe("User Updated");
-        const response2 = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/updateAccount")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response.status).toBe(200);
+      expect(response.text).toBe("User Updated");
+      const response2 = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/updateAccount")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            oldUsername: "Jesus",
+        .send({
+          oldUsername: "Jesus",
         });
-        expect(response2.status).toBe(400);
-        expect(response2.text).toBe("Missing Data");
-        const response3 = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/updateAccount")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response2.status).toBe(400);
+      expect(response2.text).toBe("Missing Data");
+      const response3 = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/updateAccount")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            oldUsername: "Eminem",
-            newUsername: "Jesus",
+        .send({
+          oldUsername: "Eminem",
+          newUsername: "Jesus",
         });
-        expect(response3.status).toBe(404);
-        expect(response3.text).toBe("Couldnt find user");
+      expect(response3.status).toBe(404);
+      expect(response3.text).toBe("Couldnt find user");
     }));
-    test("Test 24 - changePassword", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/changePassword")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 24 - changePassword", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/changePassword")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({
-            username: "Jesus",
-            oldPassword: "123456",
-            newPassword: "1234567",
+        .send({
+          username: "Jesus",
+          oldPassword: "123456",
+          newPassword: "1234567",
         });
-        expect(response.status).toBe(200);
-        expect(response.text).toBe("Password Changed");
-        const response2 = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/changePassword")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response.status).toBe(200);
+      expect(response.text).toBe("Password Changed");
+      const response2 = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/changePassword")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({ username: userInfo.username });
-        expect(response2.status).toBe(400);
-        expect(response2.text).toBe("Missing Data");
-        const response3 = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/changePassword")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+        .send({ username: userInfo.username });
+      expect(response2.status).toBe(400);
+      expect(response2.text).toBe("Missing Data");
+      const response3 = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/changePassword")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send({ username: "Jesus", oldPassword: "123", newPassword: "1234567" });
-        expect(response3.status).toBe(400);
-        expect(response3.text).toBe("Invalid Password");
-        const response4 = yield (0, supertest_1.default)(app)
-            .put("/auth/myuser/changePassword")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
-        })
-            .send({
-            username: "Eminem",
-            oldPassword: "1234567",
-            newPassword: "12345678",
+        .send({
+          username: "Jesus",
+          oldPassword: "123",
+          newPassword: "1234567",
         });
-        expect(response4.status).toBe(404);
-        expect(response4.text).toBe("Couldnt find user");
+      expect(response3.status).toBe(400);
+      expect(response3.text).toBe("Invalid Password");
+      const response4 = yield (0, supertest_1.default)(app)
+        .put("/auth/myuser/changePassword")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
+        })
+        .send({
+          username: "Eminem",
+          oldPassword: "1234567",
+          newPassword: "12345678",
+        });
+      expect(response4.status).toBe(404);
+      expect(response4.text).toBe("Couldnt find user");
     }));
-    test("Test 25 - getUser", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .get("/auth/myuser/Jesus")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 25 - getUser", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .get("/auth/myuser/Jesus")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         });
-        expect(response.status).toBe(200);
-        expect(response.body.username).toBe("Jesus");
-        const response2 = yield (0, supertest_1.default)(app)
-            .get("/auth/myuser/avi")
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+      expect(response.status).toBe(200);
+      expect(response.body.username).toBe("Jesus");
+      const response2 = yield (0, supertest_1.default)(app)
+        .get("/auth/myuser/avi")
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         });
-        expect(response2.status).toBe(404);
-        expect(response2.text).toBe("Couldnt find user");
+      expect(response2.status).toBe(404);
+      expect(response2.text).toBe("Couldnt find user");
     }));
-    test("Test 26 - deleteAccount", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app)
-            .delete("/auth/myuser/deleteAccount")
-            .query({ username: "David" })
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+  test("Test 26 - deleteAccount", () =>
+    __awaiter(void 0, void 0, void 0, function* () {
+      const response = yield (0, supertest_1.default)(app)
+        .delete("/auth/myuser/deleteAccount")
+        .query({ username: "David" })
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send();
-        expect(response.status).toBe(404);
-        expect(response.text).toBe("Couldnt find user");
-        const response2 = yield (0, supertest_1.default)(app)
-            .delete("/auth/myuser/deleteAccount")
-            .query({ userrrname: "Jesus" })
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+        .send();
+      expect(response.status).toBe(404);
+      expect(response.text).toBe("Couldnt find user");
+      const response2 = yield (0, supertest_1.default)(app)
+        .delete("/auth/myuser/deleteAccount")
+        .query({ userrrname: "Jesus" })
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send();
-        expect(response2.status).toBe(400);
-        expect(response2.text).toBe("Missing Data");
-        const response3 = yield (0, supertest_1.default)(app)
-            .delete("/auth/myuser/deleteAccount")
-            .query({ username: "Jesus" })
-            .set({
-            Authorization: "jwt " + userInfo.accessToken,
+        .send();
+      expect(response2.status).toBe(400);
+      expect(response2.text).toBe("Missing Data");
+      const response3 = yield (0, supertest_1.default)(app)
+        .delete("/auth/myuser/deleteAccount")
+        .query({ username: "Jesus" })
+        .set({
+          Authorization: "jwt " + userInfo.accessToken,
         })
-            .send();
-        expect(response3.status).toBe(200);
-        expect(response3.text).toBe("Account Deleted");
+        .send();
+      expect(response3.status).toBe(200);
+      expect(response3.text).toBe("Account Deleted");
     }));
 });
 // import request from "supertest";
