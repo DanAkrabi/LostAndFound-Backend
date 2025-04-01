@@ -279,6 +279,7 @@ class PostController extends BaseController<iPost> {
         content,
         sender,
         location,
+        userId,
         imagePath = "",
       } = req.body;
 
@@ -309,6 +310,7 @@ class PostController extends BaseController<iPost> {
         content,
         sender,
         location,
+        userId,
         imagePath: imageUrl, // Make sure to use the correct field name as per your schema
       });
 
@@ -329,64 +331,64 @@ class PostController extends BaseController<iPost> {
     }
   }
 
-  async deletePost(req: Request, res: Response) {
-    const postID = req.params._id;
-    try {
-      const postToDelete = await postsModel.findByIdAndDelete(postID);
-      if (!postToDelete) {
-        res.status(404).send("Couldnt find post");
-        return;
-      } else {
-        res.status(200).send(postToDelete);
-        return;
-      }
-    } catch (error) {
-      res.status(400).send(error);
-      return;
-    }
-  }
-  async like(req: Request, res: Response) {
-    const postID = req.params._id;
-    const authHeader = req.headers["authorization"];
-    const token = authHeader?.split(" ")[1];
+  // async deletePost(req: Request, res: Response) {
+  //   const postID = req.params._id;
+  //   try {
+  //     const postToDelete = await postsModel.findByIdAndDelete(postID);
+  //     if (!postToDelete) {
+  //       res.status(404).send("Couldnt find post");
+  //       return;
+  //     } else {
+  //       res.status(200).send(postToDelete);
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     res.status(400).send(error);
+  //     return;
+  //   }
+  // }
+  // async like(req: Request, res: Response) {
+  //   const postID = req.params._id;
+  //   const authHeader = req.headers["authorization"];
+  //   const token = authHeader?.split(" ")[1];
 
-    if (!token) return res.status(401).send("Missing token");
+  //   if (!token) return res.status(401).send("Missing token");
 
-    try {
-      const userId = decodeToken(token);
-      if (!userId) return res.status(403).send("Invalid token");
+  //   try {
+  //     const userId = decodeToken(token);
+  //     if (!userId) return res.status(403).send("Invalid token");
 
-      if (!mongoose.Types.ObjectId.isValid(postID)) {
-        return res.status(400).send("Invalid post ID");
-      }
+  //     if (!mongoose.Types.ObjectId.isValid(postID)) {
+  //       return res.status(400).send("Invalid post ID");
+  //     }
 
-      const post = await postsModel.findById(postID);
-      const user = await userModel.findById(userId);
+  //     const post = await postsModel.findById(postID);
+  //     const user = await userModel.findById(userId);
 
-      if (!post || !user) {
-        return res.status(404).send("Post or user not found");
-      }
+  //     if (!post || !user) {
+  //       return res.status(404).send("Post or user not found");
+  //     }
 
-      const alreadyLiked = user.likedPosts?.some(
-        (id) => id.toString() === postID
-      );
+  //     const alreadyLiked = user.likedPosts?.some(
+  //       (id) => id.toString() === postID
+  //     );
 
-      if (alreadyLiked) {
-        return res.status(400).send("Post already liked");
-      }
+  //     if (alreadyLiked) {
+  //       return res.status(400).send("Post already liked");
+  //     }
 
-      post.likes += 1;
-      user.likedPosts = [...(user.likedPosts || []), postID];
+  //     post.likes += 1;
+  //     user.likedPosts = [...(user.likedPosts || []), postID];
 
-      await post.save();
-      await user.save();
+  //     await post.save();
+  //     await user.save();
 
-      return res.status(200).json({ liked: true, likes: post.likes });
-    } catch (err) {
-      console.error("Error in like:", err);
-      return res.status(500).send("Server error");
-    }
-  }
+  //     return res.status(200).json({ liked: true, likes: post.likes });
+  //   } catch (err) {
+  //     console.error("Error in like:", err);
+  //     return res.status(500).send("Server error");
+  //   }
+  // }
 
   async unLike(req: Request, res: Response) {
     const postID = req.params._id;
@@ -431,25 +433,94 @@ class PostController extends BaseController<iPost> {
     }
   }
 
-  async updatePost(req: Request, res: Response) {
-    const askerID = req.params._id;
-    const newContent = req.body.content;
+  // async updatePost(req: Request, res: Response) {
+  //   const askerID = req.params._id;
+  //   const newContent = req.body.content;
+  //   try {
+  //     const postToUpdate = await postsModel.findByIdAndUpdate(
+  //       askerID,
+  //       { content: newContent },
+  //       { new: true }
+  //     );
+  //     if (!postToUpdate) {
+  //       res.status(404).send("COULDNT FIND POST! DUE TO AN ERROR");
+  //       return;
+  //     } else {
+  //       res.status(200).send(postToUpdate);
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     res.status(400).send(error);
+  //     return;
+  //   }
+  // }
+  async updatePost(req: Request, res: Response): Promise<void> {
+    const postID = req.params.id;
+    const { content } = req.body;
+
     try {
-      const postToUpdate = await postsModel.findByIdAndUpdate(
-        askerID,
-        { content: newContent },
+      const updatedPost = await postsModel.findByIdAndUpdate(
+        postID,
+        { content },
         { new: true }
       );
-      if (!postToUpdate) {
-        res.status(404).send("COULDNT FIND POST! DUE TO AN ERROR");
-        return;
-      } else {
-        res.status(200).send(postToUpdate);
-        return;
+
+      if (!updatedPost) {
+        res.status(404).send("Post not found");
+        return; // Make sure to return after sending response
       }
+
+      res.status(200).send(updatedPost);
     } catch (error) {
-      res.status(400).send(error);
-      return;
+      console.error("Error updating post:", error);
+      res.status(500).send("Server error");
+    }
+  }
+
+  // async deletePost(req: Request, res: Response): Promise<void> {
+  //   const postID = req.params.id;
+  //   const userId = decodeToken(
+  //     req.headers["authorization"]?.split(" ")[1] || ""
+  //   );
+
+  //   try {
+  //     const postToDelete = await postsModel.findById(postID);
+
+  //     if (!postToDelete) {
+  //       res.status(404).send("Post not found");
+  //       return;
+  //     }
+
+  //     if (postToDelete.sender !== userId) {
+  //       res.status(403).send("You are not the owner of this post");
+  //       return;
+  //     }
+
+  //     await postsModel.findByIdAndDelete(postID);
+
+  //     res.status(200).send({ message: "Post deleted" });
+  //   } catch (error) {
+  //     console.error("Error deleting post:", error);
+  //     res.status(400).send("Error deleting post");
+  //   }
+  // }
+
+  async deletePost(req: Request, res: Response): Promise<void> {
+    const postID = req.params.id;
+    const userId = decodeToken(
+      req.headers["authorization"]?.split(" ")[1] || ""
+    );
+
+    try {
+      // בדוק אם הפוסט שייך למשתמש
+
+      // הפוסט שייך למשתמש, מחק אותו
+      await postsModel.findByIdAndDelete(postID);
+
+      res.status(200).send({ message: "Post deleted" });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      res.status(500).send("Internal server error"); // שינוי ל 500 במקרה של שגיאה
     }
   }
 

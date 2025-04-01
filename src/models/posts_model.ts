@@ -9,7 +9,8 @@ export interface iPost {
   imagePath?: string;
   location?: string;
   createdAt?: Date;
-  likedBy?: mongoose.Types.ObjectId[]; // 👈 חדש
+  likedBy?: mongoose.Types.ObjectId[];
+  // 👈 חדש
 }
 
 const postSchema = new mongoose.Schema<iPost>(

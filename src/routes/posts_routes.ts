@@ -87,7 +87,10 @@ router.get("/:id", (req, res) => {
  *         description: Post not found
  */
 
-router.put("/:id", postController.updatePost.bind(postController));
+// router.put("/:id", postController.updatePost.bind(postController));
+router.put("/:id", authMiddleware, (req, res, next) => {
+  postController.updatePost(req, res).catch(next); // במקרה של שגיאה, next יעבור אל handler אחר
+});
 
 // router.put("/:id", (req, res) => {
 //   postController.update(req, res);
@@ -158,15 +161,24 @@ router.post("/create", authMiddleware, async (req, res, next) => {
  *         description: Unauthorized
  */
 
-router.delete(
-  "/:id",
-  authMiddleware,
-  postController.deletePost.bind(postController)
-);
-
+// router.delete(
+//   "/:id",
+//   authMiddleware,
+//   postController.deletePost.bind(postController)
+// );
+router.delete("/:id", authMiddleware, (req, res, next) => {
+  postController.deletePost(req, res).catch(next); // במקרה של שגיאה, next יעבור אל handler אחר
+});
 router.get("/", postController.getPaginatedPosts.bind(postController)); // Default route for paginated posts
-router.put("/like/:_id", authMiddleware, (req, res, next) => {
-  postController.like(req, res).catch(next);
+// router.put("/like/:_id", authMiddleware, (req, res, next) => {
+//   postController.like(req, res).catch(next);
+// });
+router.put("/like/:_id", authMiddleware, async (req, res, next) => {
+  try {
+    await postController.toggleLike(req, res); // Assuming toggleLike handles likes
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.put("/unlike/:_id", authMiddleware, (req, res, next) => {
