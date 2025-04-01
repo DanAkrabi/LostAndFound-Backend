@@ -161,32 +161,6 @@ router.post("/google-login", authController.googleAuth);
  *         description: Server error
  */
 router.post("/login", authController.login);
-// router.post("/google-login", authController.googleAuth);
-// /**
-//  * @swagger
-//  * /auth/google:
-//  *   post:
-//  *     summary: Authenticate with Google
-//  *     tags: [Auth]
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             $ref: '#/components/schemas/GoogleAuthRequest'
-//  *     responses:
-//  *       200:
-//  *         description: Google authentication successful
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/LoginResponse'
-//  *       400:
-//  *         description: Invalid token
-//  *       500:
-//  *         description: Authentication failed
-//  */
-// router.post("/google", authController.googleAuth);
 
 /**
  * @swagger

@@ -133,60 +133,6 @@ const register = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Handle Google authentication
- */
-// const googleAuth = async (req: Request, res: Response) => {
-//   const { token } = req.body;
-//   try {
-//     const ticket = await googleClient.verifyIdToken({
-//       idToken: token,
-//       audience: process.env.GOOGLE_CLIENT_ID!,
-//     });
-
-//     const payload = ticket.getPayload();
-//     if (!payload) {
-//       res.status(400).json({ error: "Invalid token" });
-//       return;
-//     }
-
-//     const { email } = payload;
-
-//     let user = await userModel.findOne({ email });
-
-//     if (!user) {
-//       const username = email?.split("@")[0];
-
-//       user = new userModel({
-//         username, // שם המשתמש יהיה האימייל ללא ה-@
-//         email,
-//       });
-//     }
-//     const tokens = generateTokens(user._id.toString());
-//     if (!tokens) {
-//       res.status(500).json({ error: "Failed to generate tokens" });
-//       return;
-//     }
-//     const { accessToken, refreshToken } = tokens;
-//     // Generate JWT token
-//     user.refreshTokens.push(refreshToken);
-//     await user.save();
-//     res.status(200).send({
-//       email: user.email,
-//       username: user.username,
-//       _id: user._id,
-//       profileImage: user.profileImage,
-//       accessToken: accessToken,
-//       refreshToken: refreshToken,
-//     });
-//     return;
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Failed to authenticate with Google" });
-//     return;
-//   }
-// };
-
 const googleAuth = async (req: Request, res: Response) => {
   const { token } = req.body;
   try {

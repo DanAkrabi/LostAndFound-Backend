@@ -11,103 +11,6 @@ class PostController extends BaseController<iPost> {
     //super(postsModel);
     super(model);
   }
-  // getPaginatedPosts = async (req: Request, res: Response) => {
-  //   try {
-  //     console.log("🟢 Reached getPaginatedPosts route");
-
-  //     const page = parseInt((req.query.page as string) || "1");
-  //     const limit = parseInt((req.query.limit as string) || "6");
-  //     const sender = req.query.sender as string;
-
-  //     console.log("📩 Query params:", { page, limit, sender });
-
-  //     const query: any = sender ? { sender } : {};
-  //     const totalPosts = await this.model.countDocuments(query);
-  //     const totalPages = Math.ceil(totalPosts / limit);
-
-  //     const posts = await this.model
-  //       .find(query)
-  //       .sort({ createdAt: -1 })
-  //       .skip((page - 1) * limit)
-  //       .limit(limit);
-
-  //     // 🧠 זיהוי המשתמש
-  //     const authHeader = req.headers["authorization"];
-  //     const token = authHeader?.split(" ")[1];
-  //     let userId = null;
-  //     let likedPostIdsSet = new Set<string>();
-
-  //     if (token) {
-  //       try {
-  //         userId = decodeToken(token);
-  //         const user = await userModel.findById(userId);
-  //         likedPostIdsSet = new Set(
-  //           (user?.likedPosts ?? []).map((id) => id.toString())
-  //         );
-  //       } catch (err) {
-  //         console.warn("⚠️ Failed to decode token or find user:", err);
-  //       }
-  //     }
-
-  //     // ✨ enrich posts with sender info + hasLiked + numOfComments
-  //     const enrichedPosts = await Promise.all(
-  //       posts.map(async (post) => {
-  //         try {
-  //           const user = await userModel.findById(post.sender);
-  //           const commentCount = await commentModel.countDocuments({
-  //             postId: post._id,
-  //           });
-
-  //           const hasLiked = likedPostIdsSet.has(post._id.toString());
-  //           console.log(`🔍 Post ID: ${post._id} | hasLiked: ${hasLiked}`);
-
-  //           return {
-  //             _id: post._id,
-  //             title: post.title,
-  //             content: post.content,
-  //             likes: post.likes,
-  //             numOfComments: commentCount,
-  //             imagePath: post.imagePath,
-  //             location: post.location,
-  //             createdAt: post.createdAt,
-  //             sender: post.sender,
-  //             senderUsername: user?.username || "משתמש לא ידוע",
-  //             senderProfileImage: user?.profileImage || "/default-avatar.png",
-  //             hasLiked,
-  //           };
-  //         } catch (err) {
-  //           const fallbackCommentCount = await commentModel.countDocuments({
-  //             postId: post._id,
-  //           });
-  //           const hasLiked = likedPostIdsSet.has(post._id.toString());
-  //           console.log(
-  //             `🔍 [Fallback] Post ID: ${post._id} | hasLiked: ${hasLiked}`
-  //           );
-
-  //           return {
-  //             _id: post._id,
-  //             title: post.title,
-  //             content: post.content,
-  //             likes: post.likes,
-  //             numOfComments: fallbackCommentCount,
-  //             imagePath: post.imagePath,
-  //             location: post.location,
-  //             createdAt: post.createdAt,
-  //             sender: post.sender,
-  //             senderUsername: "שגיאה",
-  //             senderProfileImage: "/default-avatar.png",
-  //             hasLiked,
-  //           };
-  //         }
-  //       })
-  //     );
-
-  //     res.json({ posts: enrichedPosts, currentPage: page, totalPages });
-  //   } catch (error) {
-  //     console.error("❌ Error in getPaginatedPosts:", error);
-  //     res.status(500).json({ message: "Server error", error });
-  //   }
-  // };
 
   getPaginatedPosts = async (req: Request, res: Response) => {
     try {
@@ -331,65 +234,6 @@ class PostController extends BaseController<iPost> {
     }
   }
 
-  // async deletePost(req: Request, res: Response) {
-  //   const postID = req.params._id;
-  //   try {
-  //     const postToDelete = await postsModel.findByIdAndDelete(postID);
-  //     if (!postToDelete) {
-  //       res.status(404).send("Couldnt find post");
-  //       return;
-  //     } else {
-  //       res.status(200).send(postToDelete);
-  //       return;
-  //     }
-  //   } catch (error) {
-  //     res.status(400).send(error);
-  //     return;
-  //   }
-  // }
-  // async like(req: Request, res: Response) {
-  //   const postID = req.params._id;
-  //   const authHeader = req.headers["authorization"];
-  //   const token = authHeader?.split(" ")[1];
-
-  //   if (!token) return res.status(401).send("Missing token");
-
-  //   try {
-  //     const userId = decodeToken(token);
-  //     if (!userId) return res.status(403).send("Invalid token");
-
-  //     if (!mongoose.Types.ObjectId.isValid(postID)) {
-  //       return res.status(400).send("Invalid post ID");
-  //     }
-
-  //     const post = await postsModel.findById(postID);
-  //     const user = await userModel.findById(userId);
-
-  //     if (!post || !user) {
-  //       return res.status(404).send("Post or user not found");
-  //     }
-
-  //     const alreadyLiked = user.likedPosts?.some(
-  //       (id) => id.toString() === postID
-  //     );
-
-  //     if (alreadyLiked) {
-  //       return res.status(400).send("Post already liked");
-  //     }
-
-  //     post.likes += 1;
-  //     user.likedPosts = [...(user.likedPosts || []), postID];
-
-  //     await post.save();
-  //     await user.save();
-
-  //     return res.status(200).json({ liked: true, likes: post.likes });
-  //   } catch (err) {
-  //     console.error("Error in like:", err);
-  //     return res.status(500).send("Server error");
-  //   }
-  // }
-
   async unLike(req: Request, res: Response) {
     const postID = req.params._id;
     const authHeader = req.headers["authorization"];
@@ -433,41 +277,17 @@ class PostController extends BaseController<iPost> {
     }
   }
 
-  // async updatePost(req: Request, res: Response) {
-  //   const askerID = req.params._id;
-  //   const newContent = req.body.content;
-  //   try {
-  //     const postToUpdate = await postsModel.findByIdAndUpdate(
-  //       askerID,
-  //       { content: newContent },
-  //       { new: true }
-  //     );
-  //     if (!postToUpdate) {
-  //       res.status(404).send("COULDNT FIND POST! DUE TO AN ERROR");
-  //       return;
-  //     } else {
-  //       res.status(200).send(postToUpdate);
-  //       return;
-  //     }
-  //   } catch (error) {
-  //     res.status(400).send(error);
-  //     return;
-  //   }
-  // }
   async updatePost(req: Request, res: Response): Promise<void> {
-    const postID = req.params.id;
-    const { content } = req.body;
-
+    const { title, content, imagePath } = req.body;
     try {
       const updatedPost = await postsModel.findByIdAndUpdate(
-        postID,
-        { content },
+        req.params.id,
+        { title, content, imagePath }, // עדכון כל השדות כולל התמונה
         { new: true }
       );
 
       if (!updatedPost) {
         res.status(404).send("Post not found");
-        return; // Make sure to return after sending response
       }
 
       res.status(200).send(updatedPost);
@@ -477,34 +297,6 @@ class PostController extends BaseController<iPost> {
     }
   }
 
-  // async deletePost(req: Request, res: Response): Promise<void> {
-  //   const postID = req.params.id;
-  //   const userId = decodeToken(
-  //     req.headers["authorization"]?.split(" ")[1] || ""
-  //   );
-
-  //   try {
-  //     const postToDelete = await postsModel.findById(postID);
-
-  //     if (!postToDelete) {
-  //       res.status(404).send("Post not found");
-  //       return;
-  //     }
-
-  //     if (postToDelete.sender !== userId) {
-  //       res.status(403).send("You are not the owner of this post");
-  //       return;
-  //     }
-
-  //     await postsModel.findByIdAndDelete(postID);
-
-  //     res.status(200).send({ message: "Post deleted" });
-  //   } catch (error) {
-  //     console.error("Error deleting post:", error);
-  //     res.status(400).send("Error deleting post");
-  //   }
-  // }
-
   async deletePost(req: Request, res: Response): Promise<void> {
     const postID = req.params.id;
     const userId = decodeToken(
@@ -512,9 +304,6 @@ class PostController extends BaseController<iPost> {
     );
 
     try {
-      // בדוק אם הפוסט שייך למשתמש
-
-      // הפוסט שייך למשתמש, מחק אותו
       await postsModel.findByIdAndDelete(postID);
 
       res.status(200).send({ message: "Post deleted" });
