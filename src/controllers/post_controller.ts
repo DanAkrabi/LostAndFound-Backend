@@ -170,7 +170,36 @@ class PostController extends BaseController<iPost> {
       res.status(500).send("Server error");
     }
   }
+  // async isLiked(req: Request, res: Response) {
+  //   const postID = req.params._id;
+  //   const authHeader = req.headers["authorization"];
+  //   const token = authHeader?.split(" ")[1];
 
+  //   if (!token) {
+  //     return res.status(401).json({ message: "Missing token" });
+  //   }
+
+  //   try {
+  //     const userId = decodeToken(token);
+  //     if (!userId) {
+  //       return res.status(403).json({ message: "Invalid token" });
+  //     }
+
+  //     const post = await postsModel.findById(postID);
+  //     if (!post) {
+  //       return res.status(404).json({ message: "Post not found" });
+  //     }
+
+  //     const hasLiked = post.likedBy?.some(
+  //       (likedPostId) => likedPostId.toString() === userId
+  //     );
+
+  //     return res.status(200).json({ liked: !!hasLiked });
+  //   } catch (error) {
+  //     console.error("Error checking isLiked:", error);
+  //     return res.status(500).json({ message: "Server error" });
+  //   }
+  // }
   async createPost(req: Request, res: Response) {
     console.log("Create Post - Received Request");
     console.log("Full Request Body:", req.body);
@@ -234,6 +263,136 @@ class PostController extends BaseController<iPost> {
     }
   }
 
+  // async unLike(req: Request, res: Response) {
+  //   const postID = req.params._id;
+  //   const authHeader = req.headers["authorization"];
+  //   const token = authHeader?.split(" ")[1];
+
+  //   if (!token) return res.status(401).send("Missing token");
+
+  //   try {
+  //     const userId = decodeToken(token);
+  //     if (!userId) return res.status(403).send("Invalid token");
+
+  //     if (!mongoose.Types.ObjectId.isValid(postID)) {
+  //       return res.status(400).send("Invalid post ID");
+  //     }
+
+  //     const post = await postsModel.findById(postID);
+  //     const user = await userModel.findById(userId);
+
+  //     if (!post || !user) {
+  //       return res.status(404).send("Post or user not found");
+  //     }
+
+  //     const hasLiked = user.likedPosts?.some((id) => id.toString() === postID);
+
+  //     if (!hasLiked) {
+  //       return res.status(400).send("Post not liked yet");
+  //     }
+
+  //     post.likes = Math.max(0, post.likes - 1);
+  //     user.likedPosts = user.likedPosts?.filter(
+  //       (id) => id.toString() !== postID
+  //     );
+
+  //     await post.save();
+  //     await user.save();
+
+  //     return res.status(200).json({ liked: false, likes: post.likes });
+  //   } catch (err) {
+  //     console.error("Error in unlike:", err);
+  //     return res.status(500).send("Server error");
+  //   }
+  // }
+  // async Like(req: Request, res: Response) {
+  //   const postID = req.params._id;
+  //   const authHeader = req.headers["authorization"];
+  //   const token = authHeader?.split(" ")[1];
+
+  //   if (!token) return res.status(401).send("Missing token");
+
+  //   try {
+  //     const userId = decodeToken(token);
+  //     if (!userId) return res.status(403).send("Invalid token");
+
+  //     if (!mongoose.Types.ObjectId.isValid(postID)) {
+  //       return res.status(400).send("Invalid post ID");
+  //     }
+
+  //     const post = await postsModel.findById(postID);
+  //     const user = await userModel.findById(userId);
+
+  //     if (!post || !user) {
+  //       return res.status(404).send("Post or user not found");
+  //     }
+
+  //     const hasLiked = user.likedPosts?.some((id) => id.toString() === postID);
+
+  //     if (hasLiked) {
+  //       return res.status(400).send("Post already liked");
+  //     }
+
+  //     post.likes += 1;
+  //     user.likedPosts = user.likedPosts || [];
+  //     user.likedPosts.push(postID); // הוספת הפוסט לרשימת הלייקים של המשתמש
+
+  //     await post.save();
+  //     await user.save();
+
+  //     return res.status(200).json({ liked: true, likes: post.likes });
+  //   } catch (err) {
+  //     console.error("Error in like:", err);
+  //     return res.status(500).send("Server error");
+  //   }
+  // }
+  async Like(req: Request, res: Response) {
+    const postID = req.params._id;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) return res.status(401).json({ message: "Missing token" });
+
+    try {
+      const userId = decodeToken(token);
+      if (!userId) return res.status(403).json({ message: "Invalid token" });
+
+      if (!mongoose.Types.ObjectId.isValid(postID)) {
+        return res.status(400).json({ message: "Invalid post ID" });
+      }
+
+      const post = await postsModel.findById(postID);
+      const user = await userModel.findById(userId);
+
+      if (!post || !user) {
+        return res.status(404).json({ message: "Post or user not found" });
+      }
+
+      const hasLiked = user.likedPosts?.some((id) => id.toString() === postID);
+
+      if (hasLiked) {
+        return res
+          .status(200)
+          .json({
+            message: "Post already liked",
+            liked: true,
+            likes: post.likes,
+          }); // מחזיר 200 ולא 400
+      }
+
+      post.likes += 1;
+      user.likedPosts = user.likedPosts || [];
+      user.likedPosts.push(postID);
+
+      await post.save();
+      await user.save();
+
+      return res.status(200).json({ liked: true, likes: post.likes });
+    } catch (err) {
+      console.error("Error in like:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
   async unLike(req: Request, res: Response) {
     const postID = req.params._id;
     const authHeader = req.headers["authorization"];

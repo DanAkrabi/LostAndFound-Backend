@@ -2,13 +2,13 @@ import express from "express";
 const router = express.Router();
 import postController from "../controllers/post_controller"; // importing the functions from post.js
 import { authMiddleware } from "../controllers/auth_controller";
-router.post("/toggle-like/:_id", authMiddleware, async (req, res, next) => {
-  try {
-    await postController.toggleLike(req, res);
-  } catch (err) {
-    next(err);
-  }
-});
+// router.post("/toggle-like/:_id", authMiddleware, async (req, res, next) => {
+//   try {
+//     await postController.toggleLike(req, res);
+//   } catch (err) {
+//     next(err);
+//   }
+// });
 /**
  * @swagger
  * /posts:
@@ -175,7 +175,7 @@ router.get("/", postController.getPaginatedPosts.bind(postController)); // Defau
 // });
 router.put("/like/:_id", authMiddleware, async (req, res, next) => {
   try {
-    await postController.toggleLike(req, res); // Assuming toggleLike handles likes
+    await postController.Like(req, res); // Assuming toggleLike handles likes
   } catch (error) {
     next(error);
   }
@@ -184,24 +184,5 @@ router.put("/like/:_id", authMiddleware, async (req, res, next) => {
 router.put("/unlike/:_id", authMiddleware, (req, res, next) => {
   postController.unLike(req, res).catch(next);
 });
-
-// router.delete("/:id", authMiddleware, (req, res) => {
-//   postController.deleteById(req, res);
-// });
-// router.put(
-//   "/like/:id",
-//   authMiddleware,
-//   postController.addLike.bind(postController)
-// );
-// router.put(
-//   "/unlike/:id",
-//   authMiddleware,
-//   postController.unLike.bind(postController)
-// );
-// router.get(
-//   "/isLiked/:id",
-//   authMiddleware,
-//   postController.isLiked.bind(postController)
-// );
 
 export default router;
