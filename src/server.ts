@@ -21,13 +21,24 @@ db.on("error", (err) => {
 db.once("open", () => {
   console.log("Connected to MongoDB");
 });
-
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 // Import or define the googleConnection function
 // Import or define the googleConnection function
+app.use(function (req, res, next) {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/file", fileRoutes);

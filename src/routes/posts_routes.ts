@@ -2,7 +2,13 @@ import express from "express";
 const router = express.Router();
 import postController from "../controllers/post_controller"; // importing the functions from post.js
 import { authMiddleware } from "../controllers/auth_controller";
-
+router.post("/toggle-like/:_id", authMiddleware, async (req, res, next) => {
+  try {
+    await postController.toggleLike(req, res);
+  } catch (err) {
+    next(err);
+  }
+});
 /**
  * @swagger
  * /posts:
@@ -19,6 +25,7 @@ import { authMiddleware } from "../controllers/auth_controller";
  *               items:
  *                 $ref: '#/components/schemas/Post'
  */
+
 router.get("/all", postController.getAll.bind(postController)); // Updated route to avoid conflict
 
 /**
@@ -44,6 +51,7 @@ router.get("/all", postController.getAll.bind(postController)); // Updated route
  *       404:
  *         description: Post not found
  */
+
 router.get("/:id", (req, res) => {
   postController.getById(req, res);
 });
@@ -78,6 +86,7 @@ router.get("/:id", (req, res) => {
  *       404:
  *         description: Post not found
  */
+
 router.put("/:id", postController.updatePost.bind(postController));
 
 // router.put("/:id", (req, res) => {
@@ -109,6 +118,7 @@ router.put("/:id", postController.updatePost.bind(postController));
  *       401:
  *         description: Unauthorized
  */
+
 router.post("/create", authMiddleware, async (req, res, next) => {
   try {
     await postController.createPost(req, res);
@@ -155,6 +165,13 @@ router.delete(
 );
 
 router.get("/", postController.getPaginatedPosts.bind(postController)); // Default route for paginated posts
+router.put("/like/:_id", authMiddleware, (req, res, next) => {
+  postController.like(req, res).catch(next);
+});
+
+router.put("/unlike/:_id", authMiddleware, (req, res, next) => {
+  postController.unLike(req, res).catch(next);
+});
 
 // router.delete("/:id", authMiddleware, (req, res) => {
 //   postController.deleteById(req, res);

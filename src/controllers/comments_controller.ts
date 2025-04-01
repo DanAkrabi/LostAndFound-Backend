@@ -9,19 +9,6 @@ class CommentsController extends BaseController<iComment> {
     super(commentsModel);
   }
 
-  async create(req: Request, res: Response) {
-    try {
-      const userId = req.params.userId;
-      const fullComment = { ...req.body, sender: userId };
-      req.body = fullComment;
-
-      await super.create(req, res);
-    } catch (error) {
-      console.error("Error creating comment:", error);
-      res.status(500).json({ message: "Failed to create comment", error });
-    }
-  }
-
   // async getCommentsByPost(req: Request, res: Response) {
   //   try {
   //     const postId = req.params.postId;

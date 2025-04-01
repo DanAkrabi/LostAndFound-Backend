@@ -133,7 +133,7 @@ import { authMiddleware } from "../controllers/auth_controller";
  *         description: Server error
  */
 router.post("/register", authController.register);
-router.post("/google", authController.googleAuth);
+router.post("/google-login", authController.googleAuth);
 /**
  * @swagger
  * /auth/login:
@@ -161,7 +161,7 @@ router.post("/google", authController.googleAuth);
  *         description: Server error
  */
 router.post("/login", authController.login);
-router.post("/google-login", authController.googleAuth);
+// router.post("/google-login", authController.googleAuth);
 // /**
 //  * @swagger
 //  * /auth/google:
