@@ -2,7 +2,6 @@ import postsModel, { iPost } from "../models/posts_model";
 import { Request, Response } from "express";
 import BaseController from "./base_controller";
 import mongoose from "mongoose";
-import { generateImage } from "../controllers/api_controller";
 import userModel from "../models/users_model";
 import { decodeToken } from "../controllers/auth_controller";
 import commentModel from "../models/comments_model";
@@ -11,200 +10,98 @@ class PostController extends BaseController<iPost> {
     //super(postsModel);
     super(model);
   }
+  async createComment(req: Request, res: Response) {
+    try {
+      const { content, postId, sender } = req.body;
+
+      console.log("📝 בקשה להוספת תגובה:");
+      console.log("✏️ תוכן:", content);
+      console.log("📌 פוסט ID:", postId);
+      console.log("👤 שולח ID:", sender);
+
+      // יצירת התגובה במסד
+      const comment = await commentModel.create({
+        content,
+        postId,
+        sender,
+      });
+
+      console.log("✅ תגובה נוספה למסד:", comment._id);
+
+      // עדכון מונה תגובות בפוסט
+      const updateResult = await postsModel.updateOne(
+        { _id: postId },
+        { $inc: { numOfComments: 1 } }
+      );
+
+      console.log("🔁 תוצאת עדכון הפוסט:", updateResult);
+
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("❌ שגיאה בהוספת תגובה:", error);
+      res.status(500).json({ message: "Server error", error });
+    }
+  }
 
   getPaginatedPosts = async (req: Request, res: Response) => {
-    try {
-      console.log("🟢 Reached getPaginatedPosts route");
+    console.log("🟢 Reached getPaginatedPosts route");
 
-      const page = parseInt((req.query.page as string) || "1");
-      const limit = parseInt((req.query.limit as string) || "6");
-      const sender = req.query.sender as string;
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 5;
+      const sender = req.query.sender as string | undefined;
+
+      const skip = (page - 1) * limit;
+      const query: any = {};
+
+      if (sender) {
+        query.sender = sender;
+      }
 
       console.log("📩 Query params:", { page, limit, sender });
 
-      const query: any = sender ? { sender } : {};
-      const totalPosts = await this.model.countDocuments(query);
-      const totalPages = Math.ceil(totalPosts / limit);
-
-      const posts = await this.model
+      const totalPosts = await postsModel.countDocuments(query);
+      const posts = await postsModel
         .find(query)
         .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
+        .skip(skip)
         .limit(limit);
 
-      // 🧠 זיהוי המשתמש
-      const authHeader = req.headers["authorization"];
-      const token = authHeader?.split(" ")[1];
-      let userId: string | null = null;
-
-      if (token) {
-        try {
-          userId = decodeToken(token);
-        } catch (err) {
-          console.warn("⚠️ Failed to decode token:", err);
-        }
-      }
-
-      // ✨ enrich posts
       const enrichedPosts = await Promise.all(
         posts.map(async (post) => {
           try {
-            const senderUser = await userModel.findById(post.sender);
-            const commentCount = await commentModel.countDocuments({
-              postId: post._id,
-            });
+            // פה נניח שה-sender הוא username
+            const user = await userModel.findOne({ username: post.sender });
 
-            const hasLiked = userId
-              ? post.likedBy?.some((id) => id.toString() === userId)
-              : false;
-
-            console.log(`🔍 Post ID: ${post._id} | hasLiked: ${hasLiked}`);
+            if (!user) {
+              console.log(`⚠️ User not found for sender: ${post.sender}`);
+              return post;
+            }
 
             return {
-              _id: post._id,
-              title: post.title,
-              content: post.content,
-              likes: post.likes,
-              numOfComments: commentCount,
-              imagePath: post.imagePath,
-              location: post.location,
-              createdAt: post.createdAt,
-              sender: post.sender,
-              senderUsername: senderUser?.username || "משתמש לא ידוע",
-              senderProfileImage:
-                senderUser?.profileImage || "/default-avatar.png",
-              hasLiked,
+              ...post.toObject(),
+              senderProfileImage: user.profileImage || null,
+              senderUsername: user.username,
             };
           } catch (err) {
-            const fallbackCommentCount = await commentModel.countDocuments({
-              postId: post._id,
-            });
-            const hasLiked = userId
-              ? post.likedBy?.some((id) => id.toString() === userId)
-              : false;
-
-            console.log(
-              `🔍 [Fallback] Post ID: ${post._id} | hasLiked: ${hasLiked}`
-            );
-
-            return {
-              _id: post._id,
-              title: post.title,
-              content: post.content,
-              likes: post.likes,
-              numOfComments: fallbackCommentCount,
-              imagePath: post.imagePath,
-              location: post.location,
-              createdAt: post.createdAt,
-              sender: post.sender,
-              senderUsername: "שגיאה",
-              senderProfileImage: "/default-avatar.png",
-              hasLiked,
-            };
+            console.error("❌ Error enriching post:", err);
+            return post;
           }
         })
       );
 
-      res.json({ posts: enrichedPosts, currentPage: page, totalPages });
-    } catch (error) {
-      console.error("❌ Error in getPaginatedPosts:", error);
-      res.status(500).json({ message: "Server error", error });
-    }
-  };
-
-  async toggleLike(req: Request, res: Response) {
-    const postID = req.params._id;
-    const { liked } = req.body;
-    const authHeader = req.headers["authorization"];
-    const token = authHeader?.split(" ")[1];
-
-    if (!token) return res.status(401).send("Missing token");
-
-    try {
-      const userId = decodeToken(token);
-      if (!userId) return res.status(403).send("Invalid token");
-
-      if (!mongoose.Types.ObjectId.isValid(postID)) {
-        return res.status(400).send("Invalid post ID");
-      }
-
-      const post = await postsModel.findById(postID);
-      if (!post) return res.status(404).send("Post not found");
-
-      console.log(
-        `🔄 Toggle like request for post ${postID} by user ${userId}`
-      );
-      console.log(`📌 Current liked status from client: ${liked}`);
-
-      const alreadyLiked = post.likedBy?.some((id) => id.toString() === userId);
-
-      if (liked && alreadyLiked) {
-        // 🔽 הורדת לייק
-        post.likes = Math.max(0, post.likes - 1);
-        post.likedBy = (post.likedBy ?? []).filter(
-          (id) => id.toString() !== userId
-        );
-        console.log("🧨 User has already liked the post, unliking now...");
-      } else if (!liked && !alreadyLiked) {
-        // 🔼 הוספת לייק
-        post.likes += 1;
-        post.likedBy = post.likedBy || [];
-        post.likedBy.push(new mongoose.Types.ObjectId(userId));
-        console.log("💖 User has not liked the post yet, liking now...");
-      } else {
-        console.warn("⚠️ Inconsistent like state - no action taken.");
-      }
-
-      await post.save();
-
-      const newLikedStatus = !liked;
-      console.log(`📤 Returning new liked status: ${newLikedStatus}`);
-
+      console.log(`✅ Returning posts: ${enrichedPosts.length}`);
       res.status(200).json({
-        postId: post._id,
-        likes: post.likes,
-        liked: newLikedStatus,
+        posts: enrichedPosts,
+        currentPage: page,
+        totalPages: Math.ceil(totalPosts / limit),
       });
     } catch (err) {
-      console.error("❌ Error in toggleLike:", err);
-      res.status(500).send("Server error");
+      console.error("❌ Failed to fetch paginated posts:", err);
+      res.status(500).json({ message: "Server error" });
     }
-  }
-  // async isLiked(req: Request, res: Response) {
-  //   const postID = req.params._id;
-  //   const authHeader = req.headers["authorization"];
-  //   const token = authHeader?.split(" ")[1];
-
-  //   if (!token) {
-  //     return res.status(401).json({ message: "Missing token" });
-  //   }
-
-  //   try {
-  //     const userId = decodeToken(token);
-  //     if (!userId) {
-  //       return res.status(403).json({ message: "Invalid token" });
-  //     }
-
-  //     const post = await postsModel.findById(postID);
-  //     if (!post) {
-  //       return res.status(404).json({ message: "Post not found" });
-  //     }
-
-  //     const hasLiked = post.likedBy?.some(
-  //       (likedPostId) => likedPostId.toString() === userId
-  //     );
-
-  //     return res.status(200).json({ liked: !!hasLiked });
-  //   } catch (error) {
-  //     console.error("Error checking isLiked:", error);
-  //     return res.status(500).json({ message: "Server error" });
-  //   }
-  // }
+  };
   async createPost(req: Request, res: Response) {
-    console.log("Create Post - Received Request");
-    console.log("Full Request Body:", req.body);
-    console.log("userId from req.params.userId:", req.params.userId);
-
     try {
       const {
         title = "Untitled Post",
@@ -225,17 +122,6 @@ class PostController extends BaseController<iPost> {
           missingFields,
         });
       }
-      let imageUrl = imagePath;
-      console.log("Image URL:", imageUrl);
-
-      if (!imageUrl) {
-        try {
-          imageUrl = await generateImage(title);
-        } catch (imageError) {
-          console.error("Image generation error:", imageError);
-          imageUrl = ""; // Ensure fallback in case of error
-        }
-      }
 
       const newPost = await postsModel.create({
         title,
@@ -243,109 +129,16 @@ class PostController extends BaseController<iPost> {
         sender,
         location,
         userId,
-        imagePath: imageUrl, // Make sure to use the correct field name as per your schema
+        imagePath,
       });
 
-      console.log("Post Created Successfully:", newPost);
       res.status(201).json(newPost);
     } catch (error) {
-      console.error("Detailed Error in Post Creation:", {
-        error,
-        errorName: error instanceof Error ? error.name : "Unknown Error",
-        errorMessage:
-          error instanceof Error ? error.message : "No error message",
-        stack: error instanceof Error ? error.stack : "No stack trace",
-      });
-      res.status(500).json({
-        error: "Internal Server Error",
-        details: error instanceof Error ? error.message : "Unknown error",
-      });
+      console.error("Error creating post:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
-  // async unLike(req: Request, res: Response) {
-  //   const postID = req.params._id;
-  //   const authHeader = req.headers["authorization"];
-  //   const token = authHeader?.split(" ")[1];
-
-  //   if (!token) return res.status(401).send("Missing token");
-
-  //   try {
-  //     const userId = decodeToken(token);
-  //     if (!userId) return res.status(403).send("Invalid token");
-
-  //     if (!mongoose.Types.ObjectId.isValid(postID)) {
-  //       return res.status(400).send("Invalid post ID");
-  //     }
-
-  //     const post = await postsModel.findById(postID);
-  //     const user = await userModel.findById(userId);
-
-  //     if (!post || !user) {
-  //       return res.status(404).send("Post or user not found");
-  //     }
-
-  //     const hasLiked = user.likedPosts?.some((id) => id.toString() === postID);
-
-  //     if (!hasLiked) {
-  //       return res.status(400).send("Post not liked yet");
-  //     }
-
-  //     post.likes = Math.max(0, post.likes - 1);
-  //     user.likedPosts = user.likedPosts?.filter(
-  //       (id) => id.toString() !== postID
-  //     );
-
-  //     await post.save();
-  //     await user.save();
-
-  //     return res.status(200).json({ liked: false, likes: post.likes });
-  //   } catch (err) {
-  //     console.error("Error in unlike:", err);
-  //     return res.status(500).send("Server error");
-  //   }
-  // }
-  // async Like(req: Request, res: Response) {
-  //   const postID = req.params._id;
-  //   const authHeader = req.headers["authorization"];
-  //   const token = authHeader?.split(" ")[1];
-
-  //   if (!token) return res.status(401).send("Missing token");
-
-  //   try {
-  //     const userId = decodeToken(token);
-  //     if (!userId) return res.status(403).send("Invalid token");
-
-  //     if (!mongoose.Types.ObjectId.isValid(postID)) {
-  //       return res.status(400).send("Invalid post ID");
-  //     }
-
-  //     const post = await postsModel.findById(postID);
-  //     const user = await userModel.findById(userId);
-
-  //     if (!post || !user) {
-  //       return res.status(404).send("Post or user not found");
-  //     }
-
-  //     const hasLiked = user.likedPosts?.some((id) => id.toString() === postID);
-
-  //     if (hasLiked) {
-  //       return res.status(400).send("Post already liked");
-  //     }
-
-  //     post.likes += 1;
-  //     user.likedPosts = user.likedPosts || [];
-  //     user.likedPosts.push(postID); // הוספת הפוסט לרשימת הלייקים של המשתמש
-
-  //     await post.save();
-  //     await user.save();
-
-  //     return res.status(200).json({ liked: true, likes: post.likes });
-  //   } catch (err) {
-  //     console.error("Error in like:", err);
-  //     return res.status(500).send("Server error");
-  //   }
-  // }
   async Like(req: Request, res: Response) {
     const postID = req.params._id;
     const authHeader = req.headers["authorization"];
@@ -371,13 +164,11 @@ class PostController extends BaseController<iPost> {
       const hasLiked = user.likedPosts?.some((id) => id.toString() === postID);
 
       if (hasLiked) {
-        return res
-          .status(200)
-          .json({
-            message: "Post already liked",
-            liked: true,
-            likes: post.likes,
-          }); // מחזיר 200 ולא 400
+        return res.status(200).json({
+          message: "Post already liked",
+          liked: true,
+          likes: post.likes,
+        }); // מחזיר 200 ולא 400
       }
 
       post.likes += 1;

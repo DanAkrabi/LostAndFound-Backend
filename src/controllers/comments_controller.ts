@@ -9,76 +9,43 @@ class CommentsController extends BaseController<iComment> {
     super(commentsModel);
   }
 
-  // async getCommentsByPost(req: Request, res: Response) {
-  //   try {
-  //     const postId = req.params.postId;
-  //     const comments = await commentsModel.find({ postId });
-
-  //     const enrichedComments = await Promise.all(
-  //       comments.map(async (comment) => {
-  //         try {
-  //           const user = await userModel.findById(comment.sender);
-
-  //           console.log("🧩 Enriching comment:", comment.content);
-  //           console.log("👤 Sender ID:", comment.sender);
-  //           console.log("📛 Found username:", user?.username);
-  //           console.log("🖼️ Profile image:", user?.profileImage);
-
-  //           return {
-  //             _id: comment._id,
-  //             postId: comment.postId,
-  //             content: comment.content,
-  //             sender: comment.sender, // נשאר ה-ID
-  //             senderUsername: user?.username || "משתמש לא ידוע",
-  //             senderProfileImage: user?.profileImage || "/default-avatar.png",
-  //           };
-  //         } catch (err) {
-  //           console.error("❌ Error finding user for comment:", err);
-  //           return {
-  //             _id: comment._id,
-  //             postId: comment.postId,
-  //             content: comment.content,
-  //             sender: comment.sender,
-  //             senderUsername: "שגיאה",
-  //             senderProfileImage: "/default-avatar.png",
-  //           };
-  //         }
-  //       })
-  //     );
-
-  //     res.status(200).json(enrichedComments);
-  //   } catch (error) {
-  //     console.error("❌ Error fetching comments:", error);
-  //     res.status(500).json({ message: "Server error", error });
-  //   }
-  // }
-
   async getCommentsByPost(req: Request, res: Response) {
     try {
       const postId = req.params.postId;
+      console.log("📥 בקשת שליפת תגובות לפוסט:", postId);
 
       // קריאה מה-query string
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 5;
-
       const skip = (page - 1) * limit;
+
+      console.log(`📄 עמוד: ${page}, גבול: ${limit}, דילוג: ${skip}`);
 
       // סך כל התגובות לפוסט הזה
       const totalComments = await commentsModel.countDocuments({ postId });
       const totalPages = Math.ceil(totalComments / limit);
+      console.log("🔢 סך תגובות שנמצאו:", totalComments);
+      console.log("📊 סך עמודים:", totalPages);
 
       // שליפת תגובות עם skip ו-limit
       const comments = await commentsModel
         .find({ postId })
-        .sort({ createdAt: -1 }) // תגובות חדשות קודם
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
+
+      console.log("📦 תגובות שנשלפו:", comments.length);
 
       // העשרה עם פרטי משתמש
       const enrichedComments = await Promise.all(
         comments.map(async (comment) => {
+          console.log("💬 תגובה שנשלפה:", comment.content);
+          console.log("🆔 מזהה שולח:", comment.sender);
+
           try {
             const user = await userModel.findById(comment.sender);
+            console.log("👤 שם משתמש:", user?.username);
+            console.log("🖼️ תמונת פרופיל:", user?.profileImage);
 
             return {
               _id: comment._id,
@@ -89,6 +56,7 @@ class CommentsController extends BaseController<iComment> {
               senderProfileImage: user?.profileImage || "/default-avatar.png",
             };
           } catch (err) {
+            console.error("❌ שגיאה בהבאת מידע על המשתמש:", err);
             return {
               _id: comment._id,
               postId: comment.postId,
@@ -101,14 +69,14 @@ class CommentsController extends BaseController<iComment> {
         })
       );
 
-      // ✅ תגובה עם pagination
+      // תגובה סופית עם עמודים
       res.status(200).json({
         comments: enrichedComments,
         currentPage: page,
         totalPages,
       });
     } catch (error) {
-      console.error("❌ Error fetching comments:", error);
+      console.error("❌ שגיאה כללית בשליפת תגובות:", error);
       res.status(500).json({ message: "Server error", error });
     }
   }
