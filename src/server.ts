@@ -42,6 +42,8 @@ app.use("/comments", commentRoutes);
 app.use("/Posts", postsRoutes); //brings all the routes we declared on ./routes/post_routes, and connects it to our app (makes it work like we wrote it on app.js).
 app.use("/auth", authRoutes);
 ``;
+setupSwagger(app);
+
 app.get("/about", (req, res) => {
   res.send("about response");
 });
@@ -54,7 +56,6 @@ app.get("*", (req, res) => {
 
 console.log(`🚀 Server is running on http://localhost:${process.env.PORT}`);
 
-setupSwagger(app);
 const initApp = () => {
   return new Promise<Express>((resolve, reject) => {
     if (process.env.MONGO_URI === undefined) {

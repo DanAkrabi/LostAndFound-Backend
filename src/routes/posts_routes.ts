@@ -1,38 +1,87 @@
 import express from "express";
 const router = express.Router();
-import postController from "../controllers/post_controller"; // importing the functions from post.js
+import postController from "../controllers/post_controller";
 import { authMiddleware } from "../controllers/auth_controller";
-// router.post("/toggle-like/:_id", authMiddleware, async (req, res, next) => {
-//   try {
-//     await postController.toggleLike(req, res);
-//   } catch (err) {
-//     next(err);
-//   }
-// });
+
+/**
+ * @swagger
+ * tags:
+ *   name: Posts
+ *   description: Endpoints for managing posts
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Post:
+ *       type: object
+ *       required:
+ *         - title
+ *         - content
+ *         - sender
+ *       properties:
+ *         _id:
+ *           type: string
+ *         title:
+ *           type: string
+ *         content:
+ *           type: string
+ *         sender:
+ *           type: string
+ *         likes:
+ *           type: number
+ *         numOfComments:
+ *           type: number
+ *         imagePath:
+ *           type: string
+ *         location:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
+
 /**
  * @swagger
  * /posts:
  *   get:
- *     summary: Retrieve all posts
+ *     summary: Get paginated posts
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of posts per page
+ *     responses:
+ *       200:
+ *         description: A paginated list of posts
+ */
+router.get("/", postController.getPaginatedPosts.bind(postController));
+
+/**
+ * @swagger
+ * /posts/all:
+ *   get:
+ *     summary: Get all posts (no pagination)
  *     tags: [Posts]
  *     responses:
  *       200:
  *         description: A list of all posts
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Post'
  */
-
-router.get("/all", postController.getAll.bind(postController)); // Updated route to avoid conflict
+router.get("/all", postController.getAll.bind(postController));
 
 /**
  * @swagger
  * /posts/{id}:
  *   get:
- *     summary: Retrieve a specific post by ID
+ *     summary: Get post by ID
  *     tags: [Posts]
  *     parameters:
  *       - in: path
@@ -40,61 +89,16 @@ router.get("/all", postController.getAll.bind(postController)); // Updated route
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the post to retrieve
+ *         description: ID of the post
  *     responses:
  *       200:
- *         description: A single post
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Post'
+ *         description: Post found
  *       404:
  *         description: Post not found
  */
-
 router.get("/:id", (req, res) => {
   postController.getById(req, res);
 });
-
-/**
- * @swagger
- * /posts/{id}:
- *   put:
- *     summary: Update a post by ID
- *     tags: [Posts]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the post to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               content:
- *                 type: string
- *     responses:
- *       200:
- *         description: Post updated successfully
- *       404:
- *         description: Post not found
- */
-
-// router.put("/:id", postController.updatePost.bind(postController));
-router.put("/:id", authMiddleware, (req, res, next) => {
-  postController.updatePost(req, res).catch(next); // במקרה של שגיאה, next יעבור אל handler אחר
-});
-
-// router.put("/:id", (req, res) => {
-//   postController.update(req, res);
-// });
 
 /**
  * @swagger
@@ -110,18 +114,28 @@ router.put("/:id", authMiddleware, (req, res, next) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - title
+ *               - content
+ *               - sender
+ *               - location
  *             properties:
  *               title:
  *                 type: string
  *               content:
  *                 type: string
+ *               sender:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               imagePath:
+ *                 type: string
  *     responses:
  *       201:
- *         description: Post created successfully
- *       401:
- *         description: Unauthorized
+ *         description: Post created
+ *       400:
+ *         description: Missing fields
  */
-
 router.post("/create", authMiddleware, async (req, res, next) => {
   try {
     await postController.createPost(req, res);
@@ -129,19 +143,12 @@ router.post("/create", authMiddleware, async (req, res, next) => {
     next(error);
   }
 });
-// router.post(
-//   "/create",
-//   authMiddleware,
-//   postController.createPost.bind(postController)
-// );
-
-// router.post("/", authMiddleware, postController.create.bind(postController));
 
 /**
  * @swagger
  * /posts/{id}:
- *   delete:
- *     summary: Delete a post by ID
+ *   put:
+ *     summary: Update a post
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -151,38 +158,124 @@ router.post("/create", authMiddleware, async (req, res, next) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the post to delete
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *               imagePath:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Post deleted successfully
+ *         description: Post updated
  *       404:
  *         description: Post not found
+ */
+router.put("/:id", authMiddleware, (req, res, next) => {
+  postController.updatePost(req, res).catch(next);
+});
+
+/**
+ * @swagger
+ * /posts/{id}:
+ *   delete:
+ *     summary: Delete a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post deleted
+ *       404:
+ *         description: Post not found
+ */
+router.delete("/:id", authMiddleware, (req, res, next) => {
+  postController.deletePost(req, res).catch(next);
+});
+
+/**
+ * @swagger
+ * /posts/like/{_id}:
+ *   put:
+ *     summary: Like a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: _id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post liked
  *       401:
  *         description: Unauthorized
  */
-
-// router.delete(
-//   "/:id",
-//   authMiddleware,
-//   postController.deletePost.bind(postController)
-// );
-router.delete("/:id", authMiddleware, (req, res, next) => {
-  postController.deletePost(req, res).catch(next); // במקרה של שגיאה, next יעבור אל handler אחר
-});
-router.get("/", postController.getPaginatedPosts.bind(postController)); // Default route for paginated posts
-// router.put("/like/:_id", authMiddleware, (req, res, next) => {
-//   postController.like(req, res).catch(next);
-// });
 router.put("/like/:_id", authMiddleware, async (req, res, next) => {
   try {
-    await postController.Like(req, res); // Assuming toggleLike handles likes
+    await postController.Like(req, res);
   } catch (error) {
     next(error);
   }
 });
 
+/**
+ * @swagger
+ * /posts/unlike/{_id}:
+ *   put:
+ *     summary: Unlike a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: _id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Post unliked
+ *       401:
+ *         description: Unauthorized
+ */
 router.put("/unlike/:_id", authMiddleware, (req, res, next) => {
   postController.unLike(req, res).catch(next);
+});
+
+/**
+ * @swagger
+ * /posts/isLiked/{_id}:
+ *   get:
+ *     summary: Check if user liked a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: _id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Like status
+ */
+router.get("/isLiked/:_id", authMiddleware, (req, res, next) => {
+  postController.isLiked(req, res).catch(next);
 });
 
 export default router;

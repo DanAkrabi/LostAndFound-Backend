@@ -2,6 +2,25 @@ import { Express } from "express";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 
+// const swaggerConfig = {
+//   definition: {
+//     openapi: "3.0.0",
+//     info: {
+//       title: "Posts Server REST API",
+//       version: "1.0.0",
+//       description: "Posts REST server including authentication using JWT",
+//     },
+//     servers: [
+//       {
+//         url: "http://localhost:3000",
+//       },
+//       {
+//         url: "https://node23.cs.colman.ac.il",
+//       },
+//     ],
+//   },
+//   apis: ["./src/routes/*.ts"],
+// };
 const swaggerConfig = {
   definition: {
     openapi: "3.0.0",
@@ -11,11 +30,20 @@ const swaggerConfig = {
       description: "Posts REST server including authentication using JWT",
     },
     servers: [
-      {
-        url: "http://localhost:3000",
+      { url: "http://localhost:3000" },
+      { url: "https://node23.cs.colman.ac.il" },
+    ],
+    components: {
+      securitySchemes: {
+        jwtAuth: {
+          type: "http",
+          scheme: "jwt", // זה חשוב! תואם למה שאת באמת שולחת
+        },
       },
+    },
+    security: [
       {
-        url: "https://node23.cs.colman.ac.il",
+        jwtAuth: [],
       },
     ],
   },
